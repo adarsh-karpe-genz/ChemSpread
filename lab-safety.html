@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en" data-page="labsafety">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Lab Safety — ChemSpread</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+/* === DESIGN SYSTEM === */
+/* ═══════════════════════════════════════════════
+   CHEMSPREAD · DESIGN SYSTEM v2.0
+   Violet Scientific Editorial Theme
+   ═══════════════════════════════════════════════ */
+
+/* ── DESIGN TOKENS ──────────────────────────────── */
+:root {
+  /* Core palette */
+  --primary:   #2D1B69;
+  --secondary: #4B2E83;
+  --accent:    #9F7AEA;
+  --highlight: #5A4FCF;
+  --bg:        #F4F1FA;
+  --bg-alt:    #EDE9F5;
+  --bg-dark:   #1A1128;
+  --text:      #1E1E2E;
+  --text-muted:#6B6580;
+  --border:    rgba(45,27,105,0.12);
+  --border-med:rgba(45,27,105,0.22);
+  --border-strong:rgba(45,27,105,0.38);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(45,27,105,0.08);
+  --shadow-md: 0 4px 16px rgba(45,27,105,0.12);
+  --shadow-violet: 0 2px 20px rgba(90,79,207,0.18);
+
+  /* Typography */
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'IBM Plex Sans', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.4rem;
+  --space-sm: 0.8rem;
+  --space-md: 1.6rem;
+  --space-lg: 3.2rem;
+  --space-xl: 6rem;
+  --space-2xl:9rem;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --t-fast: 0.18s;
+  --t-med:  0.35s;
+  --t-slow: 0.6s;
+}
+
+/* ── RESET & BASE ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.75;
+  overflow-x: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── TYPOGRAPHY ──────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--primary);
+}
+h1 { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+h3 { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+h4 { font-size: 1.1rem; }
+
+p { color: var(--text); }
+em { font-family: var(--serif); font-style: italic; }
+strong { font-weight: 500; }
+a { color: inherit; text-decoration: none; }
+
+.label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.text-muted { color: var(--text-muted); }
+.body-lg { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 clamp(1.2rem, 5vw, 4rem);
+}
+.section { padding: var(--space-xl) 0; }
+.section + .section { border-top: 1px solid var(--border); }
+
+/* ── FORMULA WATERMARK ───────────────────────────── */
+.formula-bg {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden;
+  z-index: 0; opacity: 0.04;
+  font-family: var(--mono); font-size: clamp(0.7rem, 1vw, 0.9rem);
+  color: var(--primary); line-height: 3; word-break: break-all;
+  padding: 2rem; user-select: none;
+}
+
+/* ── SCROLL PROGRESS ─────────────────────────────── */
+#scroll-progress {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── NAVIGATION ──────────────────────────────────── */
+#main-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(244, 241, 250, 0.93);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow var(--t-med) var(--ease);
+}
+#main-nav.scrolled { box-shadow: var(--shadow-md); }
+
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.85rem clamp(1.2rem, 5vw, 4rem);
+  gap: 2rem;
+}
+.nav-logo {
+  font-family: var(--serif); font-size: 1.3rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; white-space: nowrap;
+}
+.nav-logo sup {
+  font-family: var(--mono); font-size: 0.48rem;
+  color: var(--accent); letter-spacing: 0.1em; vertical-align: super;
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  font-size: 0.8rem; font-weight: 400; letter-spacing: 0.04em;
+  color: var(--text-muted);
+  transition: color var(--t-fast);
+  position: relative; padding-bottom: 2px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1px;
+  background: var(--accent); transition: width var(--t-med) var(--ease);
+}
+.nav-links a:hover, .nav-links a.active { color: var(--primary); }
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+.nav-search {
+  display: flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border-med); padding: 0.35rem 0.8rem;
+  background: transparent; transition: border-color var(--t-fast);
+}
+.nav-search:focus-within { border-color: var(--accent); }
+.nav-search input {
+  border: none; background: transparent; outline: none;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text); width: 140px;
+}
+.nav-search input::placeholder { color: var(--text-muted); }
+.nav-search-icon { color: var(--text-muted); font-size: 0.75rem; }
+
+.nav-cta {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; border: 1px solid var(--primary);
+  color: var(--primary); padding: 0.45rem 1.1rem;
+  transition: background var(--t-fast), color var(--t-fast);
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--primary); color: var(--bg); }
+
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 4px;
+  cursor: pointer; padding: 4px;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--primary); transition: all var(--t-med);
+}
+
+/* ── BREADCRUMB ──────────────────────────────────── */
+.breadcrumb {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em;
+  color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.breadcrumb a { color: var(--accent); }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb-sep { opacity: 0.4; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer; transition: all var(--t-med) var(--ease);
+  border: none; background: none;
+}
+.btn-primary {
+  background: var(--primary); color: var(--bg);
+  padding: 0.75rem 1.8rem;
+}
+.btn-primary:hover {
+  background: var(--highlight);
+  box-shadow: 0 4px 16px rgba(90,79,207,0.3);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  border: 1px solid var(--border-strong); color: var(--primary);
+  padding: 0.75rem 1.8rem;
+}
+.btn-outline:hover {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(159,122,234,0.1);
+}
+.btn-ghost {
+  color: var(--text-muted); border-bottom: 1px solid var(--border-med);
+  padding-bottom: 2px; border-radius: 0;
+}
+.btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── SCIENTIFIC PANELS (replaces generic cards) ─── */
+.sci-panel {
+  border: 1px solid var(--border);
+  padding: 2rem 1.8rem;
+  background: var(--bg);
+  transition: border-color var(--t-med), box-shadow var(--t-med);
+  position: relative; overflow: hidden;
+}
+.sci-panel::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 2px; height: 0;
+  background: linear-gradient(180deg, var(--accent), var(--highlight));
+  transition: height var(--t-slow) var(--ease);
+}
+.sci-panel:hover::before { height: 100%; }
+.sci-panel:hover {
+  border-color: rgba(159,122,234,0.3);
+  box-shadow: var(--shadow-violet);
+}
+
+/* ── SECTION DIVIDERS ────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3; margin: var(--space-lg) 0;
+}
+.divider-molecule {
+  display: flex; align-items: center; gap: 1.2rem;
+  margin: var(--space-lg) 0; opacity: 0.3;
+}
+.divider-molecule::before, .divider-molecule::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent));
+}
+.divider-molecule::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.divider-molecule-icon {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--accent);
+}
+
+/* ── DID YOU KNOW BLOCKS ─────────────────────────── */
+.dyk-block {
+  border-left: 3px solid var(--accent);
+  padding: 1.2rem 1.6rem; background: rgba(159,122,234,0.06);
+  margin: 2rem 0; position: relative;
+}
+.dyk-block .dyk-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
+}
+.dyk-block p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* ── KEY INSIGHT ─────────────────────────────────── */
+.insight-block {
+  background: var(--primary); color: var(--bg);
+  padding: 2rem 2.5rem; position: relative; overflow: hidden;
+}
+.insight-block::before {
+  content: '"'; position: absolute; top: -1.5rem; left: 1.2rem;
+  font-family: var(--serif); font-size: 8rem; color: var(--accent);
+  opacity: 0.12; line-height: 1; pointer-events: none;
+}
+.insight-block .insight-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+}
+.insight-block .insight-text {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.25rem; line-height: 1.6; font-weight: 300;
+}
+
+/* ── QUICK SUMMARY PANEL ─────────────────────────── */
+.quick-summary {
+  border: 1px solid var(--border-med); padding: 1.6rem 2rem;
+  background: rgba(159,122,234,0.04); margin-bottom: 2.5rem;
+}
+.quick-summary-label {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;
+}
+.quick-summary-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border-med);
+}
+.quick-summary ul { list-style: none; }
+.quick-summary ul li {
+  font-size: 0.88rem; padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border); color: var(--text-muted);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+.quick-summary ul li::before {
+  content: '→'; font-family: var(--mono); font-size: 0.65rem;
+  color: var(--accent); flex-shrink: 0;
+}
+
+/* ── TOOLTIPS ────────────────────────────────────── */
+.tooltip {
+  position: relative; border-bottom: 1px dashed var(--accent);
+  cursor: help; display: inline-block;
+}
+.tooltip::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--primary); color: var(--bg);
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.04em;
+  white-space: nowrap; padding: 0.4rem 0.8rem;
+  pointer-events: none; opacity: 0;
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  z-index: 50;
+}
+.tooltip:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ── SCROLL REVEAL ───────────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity var(--t-slow) var(--ease-out),
+              transform var(--t-slow) var(--ease-out);
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── BACK TO TOP ─────────────────────────────────── */
+#back-to-top {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 100;
+  width: 42px; height: 42px;
+  background: var(--primary); color: var(--bg);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; opacity: 0; pointer-events: none;
+  transition: opacity var(--t-med), transform var(--t-med), background var(--t-fast);
+  transform: translateY(8px);
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; transform: none; }
+#back-to-top:hover { background: var(--highlight); transform: translateY(-2px); }
+
+/* ── FOOTER ──────────────────────────────────────── */
+#main-footer {
+  border-top: 1px solid var(--border-med);
+  padding: 4rem 0 2rem; background: var(--bg-alt);
+}
+.footer-grid {
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem;
+  margin-bottom: 2.5rem;
+}
+.footer-brand-name {
+  font-family: var(--serif); font-size: 1.2rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; display: block;
+  margin-bottom: 0.7rem;
+}
+.footer-brand p { font-size: 0.8rem; color: var(--text-muted); max-width: 26ch; }
+.footer-col h4 {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+}
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 0.5rem; }
+.footer-col ul a { font-size: 0.82rem; color: var(--text-muted); transition: color var(--t-fast); }
+.footer-col ul a:hover { color: var(--primary); }
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.5rem; border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted);
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+/* ── ATOMIC ORBIT ANIMATION ──────────────────────── */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(28px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(28px) rotate(-360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(20px) rotate(360deg); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(159,122,234,0); }
+  50% { box-shadow: 0 0 0 6px rgba(159,122,234,0.12); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links, .nav-search { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-links.open {
+    display: flex; flex-direction: column;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 1.5rem clamp(1.2rem, 5vw, 4rem);
+    gap: 1.2rem;
+  }
+  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* === INTERACTIONS === */
+/* ═══════════════════════════════════════════════════════
+   CHEMSPREAD · INTERACTIONS v3.0
+   Animation system, micro-interactions, particle canvas,
+   DYK engine, ripple, molecule hover, compound tags
+   ═══════════════════════════════════════════════════════ */
+
+/* ── ENHANCED REVEAL SYSTEM ────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.65s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.65s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* stagger children */
+.reveal-stagger > * {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity 0.55s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.55s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay: 0.13s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay: 0.21s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay: 0.29s; }
+.reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay: 0.37s; }
+.reveal-stagger.visible > *:nth-child(6) { opacity:1; transform:none; transition-delay: 0.45s; }
+
+/* ── PARTICLE CANVAS ───────────────────────────────── */
+#cs-particle-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; opacity: 0.35;
+}
+
+/* ── BUTTON UPGRADES ───────────────────────────────── */
+.btn-primary,
+.btn-outline,
+.btn,
+.calc-btn-run,
+.nav-cta {
+  position: relative; overflow: hidden;
+  transform: translateZ(0); /* GPU layer */
+}
+/* ripple */
+.ripple-wave {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0); animation: rippleAnim 0.55s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(3.5); opacity: 0; }
+}
+
+/* hover scale + glow */
+.btn-primary:hover,
+.calc-btn-run:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 22px rgba(90,79,207,0.32);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* ── SCI-PANEL HOVER LIFT ──────────────────────────── */
+.sci-panel {
+  transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1),
+              border-color 0.35s, box-shadow 0.35s;
+}
+.sci-panel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(90,79,207,0.14);
+}
+
+/* ── TEXT UNDERLINE GROW ───────────────────────────── */
+.ul-grow {
+  position: relative; display: inline-block;
+}
+.ul-grow::after {
+  content: ''; position: absolute; bottom: -1px; left: 0;
+  width: 0; height: 1px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1);
+}
+.ul-grow:hover::after { width: 100%; }
+
+/* ── DID-YOU-KNOW ENGINE ───────────────────────────── */
+.dyk-rotating {
+  position: relative; overflow: hidden;
+  min-height: 60px;
+}
+.dyk-rotating p {
+  position: absolute; inset: 0;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  padding-top: 2px;
+}
+.dyk-rotating p.dyk-active {
+  opacity: 1; transform: translateY(0);
+  position: relative;
+}
+.dyk-dots {
+  display: flex; gap: 5px; margin-top: 0.8rem;
+}
+.dyk-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border-strong); cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+}
+.dyk-dot.active { background: var(--accent); transform: scale(1.3); }
+
+/* ── MOLECULE CARD HOVER ───────────────────────────── */
+.mol-card {
+  transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1),
+              box-shadow 0.4s;
+}
+.mol-card:hover {
+  transform: rotate(1.5deg) translateY(-4px);
+  box-shadow: 0 10px 28px rgba(90,79,207,0.16);
+}
+.mol-card:hover .mol-bond { stroke: var(--accent); filter: drop-shadow(0 0 3px rgba(159,122,234,0.5)); }
+.mol-card:hover .mol-atom { fill: var(--highlight); }
+
+/* ── COMPOUND TAGS ─────────────────────────────────── */
+.tag-system { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.2rem 0; }
+.chem-tag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.28rem 0.65rem;
+  border: 1px solid var(--border-med); color: var(--text-muted);
+  cursor: pointer; transition: all 0.22s;
+  user-select: none;
+}
+.chem-tag:hover { border-color: var(--accent); color: var(--accent); }
+.chem-tag.tag-active {
+  background: var(--primary); color: var(--bg); border-color: var(--primary);
+}
+.chem-tag[data-tag="organic"]    { --tc: #9F7AEA; }
+.chem-tag[data-tag="inorganic"]  { --tc: #5A4FCF; }
+.chem-tag[data-tag="industrial"] { --tc: #B87333; }
+.chem-tag[data-tag="biological"] { --tc: #27AE60; }
+.chem-tag.tag-active { background: var(--tc,var(--primary)); border-color: var(--tc,var(--primary)); }
+
+/* ── ELEMENT COMPARISON PANEL ──────────────────────── */
+#compare-panel {
+  display: none; margin-top: 2rem;
+  border: 1px solid var(--border-med);
+  animation: fadeSlideUp 0.35s ease;
+  overflow: hidden;
+}
+#compare-panel.open { display: block; }
+
+.compare-header {
+  background: var(--primary); color: var(--bg);
+  padding: 0.9rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+}
+.compare-close {
+  cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+  background: none; border: none; color: var(--bg); font-size: 1rem;
+}
+.compare-close:hover { opacity: 1; }
+
+.compare-body {
+  display: grid; grid-template-columns: 1fr 60px 1fr;
+  gap: 0; background: var(--bg);
+}
+.compare-col {
+  padding: 1.8rem;
+}
+.compare-col:first-child { border-right: 1px solid var(--border); }
+.compare-col:last-child  { border-left: 1px solid var(--border); }
+.compare-vs {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 1.2rem; color: var(--text-muted);
+  font-style: italic;
+}
+.compare-symbol {
+  font-family: var(--serif); font-size: 3.5rem; font-weight: 700;
+  color: var(--primary); line-height: 1; margin-bottom: 0.2rem;
+}
+.compare-name {
+  font-family: var(--serif); font-size: 1.2rem; color: var(--primary); margin-bottom: 1rem;
+}
+.compare-row {
+  padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.83rem;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-key { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
+.compare-val { font-family: var(--serif); font-size: 1rem; color: var(--text); }
+.compare-bar-wrap { margin-top: 0.3rem; height: 3px; background: var(--border); }
+.compare-bar {
+  height: 100%; background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.8s cubic-bezier(0.25,0.8,0.25,1); width: 0;
+}
+
+/* compare select buttons on periodic table */
+.el-compare-btn {
+  position: absolute; top: 2px; right: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; z-index: 5;
+  transition: background 0.18s, border-color 0.18s;
+  display: none;
+}
+.el:hover .el-compare-btn { display: block; }
+.el-compare-btn:hover { background: var(--accent); border-color: var(--accent); }
+.el.compare-selected { background: rgba(159,122,234,0.12) !important; border-color: var(--accent) !important; }
+.el.compare-selected .el-compare-btn { display: block; background: var(--accent); border-color: var(--accent); }
+
+/* ── TREND CHARTS SECTION ──────────────────────────── */
+#trend-charts {
+  padding: 3rem 0 4rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.trend-tabs {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  margin-bottom: 2rem; width: fit-content;
+}
+.trend-tab {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.6rem 1.2rem;
+  cursor: pointer; border-right: 1px solid var(--border);
+  color: var(--text-muted); transition: all 0.2s;
+  background: var(--bg); border-radius: 0;
+}
+.trend-tab:last-child { border-right: none; }
+.trend-tab.active { background: var(--primary); color: var(--bg); }
+.trend-tab:hover:not(.active) { color: var(--primary); background: rgba(159,122,234,0.06); }
+
+.trend-chart-wrap {
+  position: relative; height: 320px;
+  border: 1px solid var(--border); background: var(--bg); padding: 1.5rem;
+}
+.trend-chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* ── REACTION FILTER ───────────────────────────────── */
+.reaction-filter { margin: 1.5rem 0; }
+.filter-group {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem;
+  align-items: center;
+}
+.filter-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase; min-width: 60px;
+}
+
+/* reaction cards */
+.reaction-card {
+  border: 1px solid var(--border); padding: 1.4rem 1.6rem; margin-bottom: 1px;
+  transition: all 0.3s ease; background: var(--bg);
+  position: relative; overflow: hidden;
+}
+.reaction-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform 0.35s ease;
+}
+.reaction-card:hover::before { transform: scaleY(1); }
+.reaction-card.hidden { display: none; }
+.reaction-card:hover { border-color: rgba(159,122,234,0.3); transform: translateX(4px); }
+
+.rc-formula { font-family: var(--mono); font-size: 0.85rem; color: var(--primary); margin-bottom: 0.4rem; }
+.rc-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.rc-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.rc-tag {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.18rem 0.5rem;
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+
+/* ── AMBIENT SOUND TOGGLE ──────────────────────────── */
+#sound-toggle {
+  position: fixed; bottom: 2rem; left: 2rem; z-index: 100;
+  width: 38px; height: 38px;
+  background: var(--bg-alt); border: 1px solid var(--border-med);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--text-muted);
+  transition: all 0.22s; border-radius: 50%;
+  opacity: 0.7;
+}
+#sound-toggle:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+#sound-toggle.sound-on { background: var(--primary); color: var(--bg); border-color: var(--primary); opacity: 1; }
+
+/* ── ELEMENT HOVER PREVIEW ─────────────────────────── */
+#el-hover-preview {
+  position: fixed; z-index: 500; pointer-events: none;
+  background: var(--primary); color: var(--bg);
+  padding: 0.8rem 1.1rem; border: 1px solid rgba(159,122,234,0.3);
+  max-width: 200px; min-width: 150px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.18s, transform 0.18s;
+  font-family: var(--mono);
+}
+#el-hover-preview.visible { opacity: 1; transform: translateY(0); }
+#el-hover-preview .ph-sym { font-family: var(--serif); font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1; }
+#el-hover-preview .ph-name { font-size: 0.75rem; margin: 0.2rem 0; }
+#el-hover-preview .ph-num { font-size: 0.6rem; opacity: 0.6; letter-spacing: 0.08em; }
+#el-hover-preview .ph-desc { font-size: 0.6rem; opacity: 0.7; margin-top: 0.4rem; line-height: 1.5; }
+
+/* ── SCROLL PROGRESS (thicker, brighter) ───────────── */
+#scroll-progress {
+  height: 3px !important;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--highlight)) !important;
+  box-shadow: 0 0 8px rgba(159,122,234,0.4);
+}
+
+/* ── BACK TO TOP (circular) ────────────────────────── */
+#back-to-top {
+  border-radius: 50% !important;
+  width: 44px !important; height: 44px !important;
+  box-shadow: var(--shadow-violet);
+  transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1) !important;
+}
+#back-to-top:hover { transform: translateY(-3px) scale(1.08) !important; }
+
+/* ── MOBILE REDUCTION ──────────────────────────────── */
+@media (max-width: 768px) {
+  #cs-particle-canvas { display: none; }
+  .sci-panel:hover { transform: none; }
+  .mol-card:hover { transform: none; }
+  .compare-body { grid-template-columns: 1fr; }
+  .compare-vs { display: none; }
+}
+
+/* ── KEYFRAMES ─────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
+
+</style>
+<style>body{padding-top:58px}.page-hero{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border)}</style>
+</head><body>
+<div class="page-hero"><div class="container">
+  <div class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">/</span><span>Lab Safety</span></div>
+  <span class="label">PPE · Hazard Symbols · Emergency Procedures</span>
+  <h1 style="margin-top:.4rem">Laboratory Safety</h1>
+  <p class="body-lg" style="margin-top:.4rem;max-width:56ch">Every experiment starts with safety. Understanding hazards, protective equipment, and emergency procedures is the foundation of good laboratory practice.</p>
+</div></div>
+
+<div style="padding:4rem 0 5rem"><div class="container">
+<div class="insight-block reveal" style="margin-bottom:2.5rem"><div class="insight-label">Golden Rule</div><div class="insight-text">"Safety in the laboratory is not optional — it is the foundation of good science. An accident can end a career and harm lives."</div></div>
+
+<h2 class="reveal" style="margin-bottom:1.5rem">Personal Protective Equipment (PPE)</h2>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid var(--border);margin-bottom:3rem" class="reveal reveal-stagger">
+  <div style="padding:1.5rem;background:var(--bg);border-right:1px solid var(--border)"><div style="font-size:1.8rem;margin-bottom:.6rem">🥽</div><h4 style="font-size:1rem;margin-bottom:.4rem">Safety Goggles</h4><p style="font-size:.8rem;color:var(--text-muted)">Worn at ALL times in the lab. Protects against splashes, flying debris, UV. Prescription glasses alone are NOT sufficient.</p></div>
+  <div style="padding:1.5rem;background:var(--bg);border-right:1px solid var(--border)"><div style="font-size:1.8rem;margin-bottom:.6rem">🥼</div><h4 style="font-size:1rem;margin-bottom:.4rem">Lab Coat</h4><p style="font-size:.8rem;color:var(--text-muted)">Cotton preferred (synthetic melts). Fully fastened. Must cover legs. Protects skin and clothing from chemical spills.</p></div>
+  <div style="padding:1.5rem;background:var(--bg);border-right:1px solid var(--border)"><div style="font-size:1.8rem;margin-bottom:.6rem">🧤</div><h4 style="font-size:1rem;margin-bottom:.4rem">Gloves</h4><p style="font-size:.8rem;color:var(--text-muted)">Nitrile for most chemicals. Remove before touching door handles or face. Different materials for different chemicals.</p></div>
+  <div style="padding:1.5rem;background:var(--bg)"><div style="font-size:1.8rem;margin-bottom:.6rem">👟</div><h4 style="font-size:1rem;margin-bottom:.4rem">Closed-Toe Shoes</h4><p style="font-size:.8rem;color:var(--text-muted)">Sandals and open shoes are forbidden. A dropped acid bottle can cause serious foot injury.</p></div>
+</div>
+
+<h2 class="reveal" style="margin-bottom:1.5rem">GHS Hazard Symbols</h2>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;border:1px solid var(--border);margin-bottom:3rem" class="reveal reveal-stagger">
+  <div style="padding:1.2rem;text-align:center;background:var(--bg);border-right:1px solid var(--border)"><div style="font-size:2.2rem">🔥</div><div style="font-family:var(--mono);font-size:.6rem;color:var(--accent);margin:.35rem 0;letter-spacing:.08em;text-transform:uppercase">Flammable</div><p style="font-size:.72rem;color:var(--text-muted)">Ethanol, acetone, ether. Keep away from all flames and sparks.</p></div>
+  <div style="padding:1.2rem;text-align:center;background:var(--bg);border-right:1px solid var(--border)"><div style="font-size:2.2rem">☠️</div><div style="font-family:var(--mono);font-size:.6rem;color:var(--accent);margin:.35rem 0;letter-spacing:.08em;text-transform:uppercase">Toxic</div><p style="font-size:.72rem;color:var(--text-muted)">CO, cyanide, thallium. Small amounts can cause death.</p></div>
+  <div style="padding:1.2rem;text-align:center;background:var(--bg);border-right:1px solid var(--border)"><div style="font-size:2.2rem">⚡</div><div style="font-family:var(--mono);font-size:.6rem;color:var(--accent);margin:.35rem 0;letter-spacing:.08em;text-transform:uppercase">Oxidising</div><p style="font-size:.72rem;color:var(--text-muted)">H₂O₂, KMnO₄. Provides O₂ to intensify fires. Do not mix with flammables.</p></div>
+  <div style="padding:1.2rem;text-align:center;background:var(--bg);border-right:1px solid var(--border)"><div style="font-size:2.2rem">🧪</div><div style="font-family:var(--mono);font-size:.6rem;color:var(--accent);margin:.35rem 0;letter-spacing:.08em;text-transform:uppercase">Corrosive</div><p style="font-size:.72rem;color:var(--text-muted)">Conc. HCl, NaOH, H₂SO₄. Destroys skin and metals.</p></div>
+  <div style="padding:1.2rem;text-align:center;background:var(--bg)"><div style="font-size:2.2rem">☢️</div><div style="font-family:var(--mono);font-size:.6rem;color:var(--accent);margin:.35rem 0;letter-spacing:.08em;text-transform:uppercase">Radioactive</div><p style="font-size:.72rem;color:var(--text-muted)">Uranium, radium, Tc-99. Ionising radiation damages DNA.</p></div>
+</div>
+
+<h2 class="reveal" style="margin-bottom:1.5rem">Emergency Procedures</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2.5rem" class="reveal reveal-stagger">
+  <div class="sci-panel"><h4 style="margin-bottom:.7rem">Chemical Spill on Skin</h4><ol style="font-size:.82rem;color:var(--text-muted);padding-left:1.2rem;line-height:2"><li>Remove contaminated clothing immediately</li><li>Flush with cold water for at least 15 minutes</li><li>Inform supervisor immediately</li><li>Seek medical attention for strong acids or alkalis</li></ol></div>
+  <div class="sci-panel"><h4 style="margin-bottom:.7rem">Chemical in Eyes</h4><ol style="font-size:.82rem;color:var(--text-muted);padding-left:1.2rem;line-height:2"><li>Go immediately to the eyewash station</li><li>Hold eyelids open; flush for 15–20 minutes</li><li>Do NOT rub your eyes</li><li>Seek medical attention immediately after</li></ol></div>
+  <div class="sci-panel"><h4 style="margin-bottom:.7rem">Fire in the Lab</h4><ol style="font-size:.82rem;color:var(--text-muted);padding-left:1.2rem;line-height:2"><li>Alert everyone; activate fire alarm</li><li>Evacuate immediately — do NOT use lifts</li><li>If safe: close fume cupboard, turn off gas</li><li>Meet at designated assembly point</li></ol></div>
+  <div class="sci-panel"><h4 style="margin-bottom:.7rem">Broken Glassware</h4><ol style="font-size:.82rem;color:var(--text-muted);padding-left:1.2rem;line-height:2"><li>Do NOT pick up with bare hands</li><li>Alert supervisor before cleanup</li><li>Use tongs or brush and dustpan</li><li>Dispose in dedicated glass waste container</li></ol></div>
+</div>
+
+<div class="dyk-block reveal"><div class="dyk-label">Essential Rules — Always</div><p>Never eat, drink, or apply cosmetics in the lab. Always read SDS before using new chemicals. Never work alone with hazardous materials. Label all containers. Work in fume cupboard with volatile chemicals. Never pipette by mouth. Wash hands thoroughly before leaving.</p></div>
+</div></div>
+<script src="js/elements.js"></script>
+<script src="js/compounds.js"></script>
+<script src="js/reactions.js"></script>
+<script src="js/knowledge-graph.js"></script>
+<script src="js/components.js"></script>
+<script src="js/interactions.js"></script>
+</body></html>

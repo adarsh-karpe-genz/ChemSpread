@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="en" data-page="quiz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Interactive Quiz — ChemSpread</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+
+<style>
+/* === DESIGN SYSTEM === */
+/* ═══════════════════════════════════════════════
+   CHEMSPREAD · DESIGN SYSTEM v2.0
+   Violet Scientific Editorial Theme
+   ═══════════════════════════════════════════════ */
+
+/* ── DESIGN TOKENS ──────────────────────────────── */
+:root {
+  /* Core palette */
+  --primary:   #2D1B69;
+  --secondary: #4B2E83;
+  --accent:    #9F7AEA;
+  --highlight: #5A4FCF;
+  --bg:        #F4F1FA;
+  --bg-alt:    #EDE9F5;
+  --bg-dark:   #1A1128;
+  --text:      #1E1E2E;
+  --text-muted:#6B6580;
+  --border:    rgba(45,27,105,0.12);
+  --border-med:rgba(45,27,105,0.22);
+  --border-strong:rgba(45,27,105,0.38);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(45,27,105,0.08);
+  --shadow-md: 0 4px 16px rgba(45,27,105,0.12);
+  --shadow-violet: 0 2px 20px rgba(90,79,207,0.18);
+
+  /* Typography */
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'IBM Plex Sans', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.4rem;
+  --space-sm: 0.8rem;
+  --space-md: 1.6rem;
+  --space-lg: 3.2rem;
+  --space-xl: 6rem;
+  --space-2xl:9rem;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --t-fast: 0.18s;
+  --t-med:  0.35s;
+  --t-slow: 0.6s;
+}
+
+/* ── RESET & BASE ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.75;
+  overflow-x: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── TYPOGRAPHY ──────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--primary);
+}
+h1 { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+h3 { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+h4 { font-size: 1.1rem; }
+
+p { color: var(--text); }
+em { font-family: var(--serif); font-style: italic; }
+strong { font-weight: 500; }
+a { color: inherit; text-decoration: none; }
+
+.label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.text-muted { color: var(--text-muted); }
+.body-lg { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 clamp(1.2rem, 5vw, 4rem);
+}
+.section { padding: var(--space-xl) 0; }
+.section + .section { border-top: 1px solid var(--border); }
+
+/* ── FORMULA WATERMARK ───────────────────────────── */
+.formula-bg {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden;
+  z-index: 0; opacity: 0.04;
+  font-family: var(--mono); font-size: clamp(0.7rem, 1vw, 0.9rem);
+  color: var(--primary); line-height: 3; word-break: break-all;
+  padding: 2rem; user-select: none;
+}
+
+/* ── SCROLL PROGRESS ─────────────────────────────── */
+#scroll-progress {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── NAVIGATION ──────────────────────────────────── */
+#main-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(244, 241, 250, 0.93);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow var(--t-med) var(--ease);
+}
+#main-nav.scrolled { box-shadow: var(--shadow-md); }
+
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.85rem clamp(1.2rem, 5vw, 4rem);
+  gap: 2rem;
+}
+.nav-logo {
+  font-family: var(--serif); font-size: 1.3rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; white-space: nowrap;
+}
+.nav-logo sup {
+  font-family: var(--mono); font-size: 0.48rem;
+  color: var(--accent); letter-spacing: 0.1em; vertical-align: super;
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  font-size: 0.8rem; font-weight: 400; letter-spacing: 0.04em;
+  color: var(--text-muted);
+  transition: color var(--t-fast);
+  position: relative; padding-bottom: 2px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1px;
+  background: var(--accent); transition: width var(--t-med) var(--ease);
+}
+.nav-links a:hover, .nav-links a.active { color: var(--primary); }
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+.nav-search {
+  display: flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border-med); padding: 0.35rem 0.8rem;
+  background: transparent; transition: border-color var(--t-fast);
+}
+.nav-search:focus-within { border-color: var(--accent); }
+.nav-search input {
+  border: none; background: transparent; outline: none;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text); width: 140px;
+}
+.nav-search input::placeholder { color: var(--text-muted); }
+.nav-search-icon { color: var(--text-muted); font-size: 0.75rem; }
+
+.nav-cta {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; border: 1px solid var(--primary);
+  color: var(--primary); padding: 0.45rem 1.1rem;
+  transition: background var(--t-fast), color var(--t-fast);
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--primary); color: var(--bg); }
+
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 4px;
+  cursor: pointer; padding: 4px;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--primary); transition: all var(--t-med);
+}
+
+/* ── BREADCRUMB ──────────────────────────────────── */
+.breadcrumb {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em;
+  color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.breadcrumb a { color: var(--accent); }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb-sep { opacity: 0.4; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer; transition: all var(--t-med) var(--ease);
+  border: none; background: none;
+}
+.btn-primary {
+  background: var(--primary); color: var(--bg);
+  padding: 0.75rem 1.8rem;
+}
+.btn-primary:hover {
+  background: var(--highlight);
+  box-shadow: 0 4px 16px rgba(90,79,207,0.3);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  border: 1px solid var(--border-strong); color: var(--primary);
+  padding: 0.75rem 1.8rem;
+}
+.btn-outline:hover {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(159,122,234,0.1);
+}
+.btn-ghost {
+  color: var(--text-muted); border-bottom: 1px solid var(--border-med);
+  padding-bottom: 2px; border-radius: 0;
+}
+.btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── SCIENTIFIC PANELS (replaces generic cards) ─── */
+.sci-panel {
+  border: 1px solid var(--border);
+  padding: 2rem 1.8rem;
+  background: var(--bg);
+  transition: border-color var(--t-med), box-shadow var(--t-med);
+  position: relative; overflow: hidden;
+}
+.sci-panel::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 2px; height: 0;
+  background: linear-gradient(180deg, var(--accent), var(--highlight));
+  transition: height var(--t-slow) var(--ease);
+}
+.sci-panel:hover::before { height: 100%; }
+.sci-panel:hover {
+  border-color: rgba(159,122,234,0.3);
+  box-shadow: var(--shadow-violet);
+}
+
+/* ── SECTION DIVIDERS ────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3; margin: var(--space-lg) 0;
+}
+.divider-molecule {
+  display: flex; align-items: center; gap: 1.2rem;
+  margin: var(--space-lg) 0; opacity: 0.3;
+}
+.divider-molecule::before, .divider-molecule::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent));
+}
+.divider-molecule::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.divider-molecule-icon {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--accent);
+}
+
+/* ── DID YOU KNOW BLOCKS ─────────────────────────── */
+.dyk-block {
+  border-left: 3px solid var(--accent);
+  padding: 1.2rem 1.6rem; background: rgba(159,122,234,0.06);
+  margin: 2rem 0; position: relative;
+}
+.dyk-block .dyk-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
+}
+.dyk-block p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* ── KEY INSIGHT ─────────────────────────────────── */
+.insight-block {
+  background: var(--primary); color: var(--bg);
+  padding: 2rem 2.5rem; position: relative; overflow: hidden;
+}
+.insight-block::before {
+  content: '"'; position: absolute; top: -1.5rem; left: 1.2rem;
+  font-family: var(--serif); font-size: 8rem; color: var(--accent);
+  opacity: 0.12; line-height: 1; pointer-events: none;
+}
+.insight-block .insight-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+}
+.insight-block .insight-text {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.25rem; line-height: 1.6; font-weight: 300;
+}
+
+/* ── QUICK SUMMARY PANEL ─────────────────────────── */
+.quick-summary {
+  border: 1px solid var(--border-med); padding: 1.6rem 2rem;
+  background: rgba(159,122,234,0.04); margin-bottom: 2.5rem;
+}
+.quick-summary-label {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;
+}
+.quick-summary-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border-med);
+}
+.quick-summary ul { list-style: none; }
+.quick-summary ul li {
+  font-size: 0.88rem; padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border); color: var(--text-muted);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+.quick-summary ul li::before {
+  content: '→'; font-family: var(--mono); font-size: 0.65rem;
+  color: var(--accent); flex-shrink: 0;
+}
+
+/* ── TOOLTIPS ────────────────────────────────────── */
+.tooltip {
+  position: relative; border-bottom: 1px dashed var(--accent);
+  cursor: help; display: inline-block;
+}
+.tooltip::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--primary); color: var(--bg);
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.04em;
+  white-space: nowrap; padding: 0.4rem 0.8rem;
+  pointer-events: none; opacity: 0;
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  z-index: 50;
+}
+.tooltip:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ── SCROLL REVEAL ───────────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity var(--t-slow) var(--ease-out),
+              transform var(--t-slow) var(--ease-out);
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── BACK TO TOP ─────────────────────────────────── */
+#back-to-top {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 100;
+  width: 42px; height: 42px;
+  background: var(--primary); color: var(--bg);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; opacity: 0; pointer-events: none;
+  transition: opacity var(--t-med), transform var(--t-med), background var(--t-fast);
+  transform: translateY(8px);
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; transform: none; }
+#back-to-top:hover { background: var(--highlight); transform: translateY(-2px); }
+
+/* ── FOOTER ──────────────────────────────────────── */
+#main-footer {
+  border-top: 1px solid var(--border-med);
+  padding: 4rem 0 2rem; background: var(--bg-alt);
+}
+.footer-grid {
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem;
+  margin-bottom: 2.5rem;
+}
+.footer-brand-name {
+  font-family: var(--serif); font-size: 1.2rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; display: block;
+  margin-bottom: 0.7rem;
+}
+.footer-brand p { font-size: 0.8rem; color: var(--text-muted); max-width: 26ch; }
+.footer-col h4 {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+}
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 0.5rem; }
+.footer-col ul a { font-size: 0.82rem; color: var(--text-muted); transition: color var(--t-fast); }
+.footer-col ul a:hover { color: var(--primary); }
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.5rem; border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted);
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+/* ── ATOMIC ORBIT ANIMATION ──────────────────────── */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(28px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(28px) rotate(-360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(20px) rotate(360deg); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(159,122,234,0); }
+  50% { box-shadow: 0 0 0 6px rgba(159,122,234,0.12); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links, .nav-search { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-links.open {
+    display: flex; flex-direction: column;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 1.5rem clamp(1.2rem, 5vw, 4rem);
+    gap: 1.2rem;
+  }
+  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* === INTERACTIONS === */
+/* ═══════════════════════════════════════════════════════
+   CHEMSPREAD · INTERACTIONS v3.0
+   Animation system, micro-interactions, particle canvas,
+   DYK engine, ripple, molecule hover, compound tags
+   ═══════════════════════════════════════════════════════ */
+
+/* ── ENHANCED REVEAL SYSTEM ────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.65s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.65s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* stagger children */
+.reveal-stagger > * {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity 0.55s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.55s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay: 0.13s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay: 0.21s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay: 0.29s; }
+.reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay: 0.37s; }
+.reveal-stagger.visible > *:nth-child(6) { opacity:1; transform:none; transition-delay: 0.45s; }
+
+/* ── PARTICLE CANVAS ───────────────────────────────── */
+#cs-particle-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; opacity: 0.35;
+}
+
+/* ── BUTTON UPGRADES ───────────────────────────────── */
+.btn-primary,
+.btn-outline,
+.btn,
+.calc-btn-run,
+.nav-cta {
+  position: relative; overflow: hidden;
+  transform: translateZ(0); /* GPU layer */
+}
+/* ripple */
+.ripple-wave {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0); animation: rippleAnim 0.55s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(3.5); opacity: 0; }
+}
+
+/* hover scale + glow */
+.btn-primary:hover,
+.calc-btn-run:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 22px rgba(90,79,207,0.32);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* ── SCI-PANEL HOVER LIFT ──────────────────────────── */
+.sci-panel {
+  transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1),
+              border-color 0.35s, box-shadow 0.35s;
+}
+.sci-panel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(90,79,207,0.14);
+}
+
+/* ── TEXT UNDERLINE GROW ───────────────────────────── */
+.ul-grow {
+  position: relative; display: inline-block;
+}
+.ul-grow::after {
+  content: ''; position: absolute; bottom: -1px; left: 0;
+  width: 0; height: 1px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1);
+}
+.ul-grow:hover::after { width: 100%; }
+
+/* ── DID-YOU-KNOW ENGINE ───────────────────────────── */
+.dyk-rotating {
+  position: relative; overflow: hidden;
+  min-height: 60px;
+}
+.dyk-rotating p {
+  position: absolute; inset: 0;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  padding-top: 2px;
+}
+.dyk-rotating p.dyk-active {
+  opacity: 1; transform: translateY(0);
+  position: relative;
+}
+.dyk-dots {
+  display: flex; gap: 5px; margin-top: 0.8rem;
+}
+.dyk-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border-strong); cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+}
+.dyk-dot.active { background: var(--accent); transform: scale(1.3); }
+
+/* ── MOLECULE CARD HOVER ───────────────────────────── */
+.mol-card {
+  transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1),
+              box-shadow 0.4s;
+}
+.mol-card:hover {
+  transform: rotate(1.5deg) translateY(-4px);
+  box-shadow: 0 10px 28px rgba(90,79,207,0.16);
+}
+.mol-card:hover .mol-bond { stroke: var(--accent); filter: drop-shadow(0 0 3px rgba(159,122,234,0.5)); }
+.mol-card:hover .mol-atom { fill: var(--highlight); }
+
+/* ── COMPOUND TAGS ─────────────────────────────────── */
+.tag-system { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.2rem 0; }
+.chem-tag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.28rem 0.65rem;
+  border: 1px solid var(--border-med); color: var(--text-muted);
+  cursor: pointer; transition: all 0.22s;
+  user-select: none;
+}
+.chem-tag:hover { border-color: var(--accent); color: var(--accent); }
+.chem-tag.tag-active {
+  background: var(--primary); color: var(--bg); border-color: var(--primary);
+}
+.chem-tag[data-tag="organic"]    { --tc: #9F7AEA; }
+.chem-tag[data-tag="inorganic"]  { --tc: #5A4FCF; }
+.chem-tag[data-tag="industrial"] { --tc: #B87333; }
+.chem-tag[data-tag="biological"] { --tc: #27AE60; }
+.chem-tag.tag-active { background: var(--tc,var(--primary)); border-color: var(--tc,var(--primary)); }
+
+/* ── ELEMENT COMPARISON PANEL ──────────────────────── */
+#compare-panel {
+  display: none; margin-top: 2rem;
+  border: 1px solid var(--border-med);
+  animation: fadeSlideUp 0.35s ease;
+  overflow: hidden;
+}
+#compare-panel.open { display: block; }
+
+.compare-header {
+  background: var(--primary); color: var(--bg);
+  padding: 0.9rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+}
+.compare-close {
+  cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+  background: none; border: none; color: var(--bg); font-size: 1rem;
+}
+.compare-close:hover { opacity: 1; }
+
+.compare-body {
+  display: grid; grid-template-columns: 1fr 60px 1fr;
+  gap: 0; background: var(--bg);
+}
+.compare-col {
+  padding: 1.8rem;
+}
+.compare-col:first-child { border-right: 1px solid var(--border); }
+.compare-col:last-child  { border-left: 1px solid var(--border); }
+.compare-vs {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 1.2rem; color: var(--text-muted);
+  font-style: italic;
+}
+.compare-symbol {
+  font-family: var(--serif); font-size: 3.5rem; font-weight: 700;
+  color: var(--primary); line-height: 1; margin-bottom: 0.2rem;
+}
+.compare-name {
+  font-family: var(--serif); font-size: 1.2rem; color: var(--primary); margin-bottom: 1rem;
+}
+.compare-row {
+  padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.83rem;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-key { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
+.compare-val { font-family: var(--serif); font-size: 1rem; color: var(--text); }
+.compare-bar-wrap { margin-top: 0.3rem; height: 3px; background: var(--border); }
+.compare-bar {
+  height: 100%; background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.8s cubic-bezier(0.25,0.8,0.25,1); width: 0;
+}
+
+/* compare select buttons on periodic table */
+.el-compare-btn {
+  position: absolute; top: 2px; right: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; z-index: 5;
+  transition: background 0.18s, border-color 0.18s;
+  display: none;
+}
+.el:hover .el-compare-btn { display: block; }
+.el-compare-btn:hover { background: var(--accent); border-color: var(--accent); }
+.el.compare-selected { background: rgba(159,122,234,0.12) !important; border-color: var(--accent) !important; }
+.el.compare-selected .el-compare-btn { display: block; background: var(--accent); border-color: var(--accent); }
+
+/* ── TREND CHARTS SECTION ──────────────────────────── */
+#trend-charts {
+  padding: 3rem 0 4rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.trend-tabs {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  margin-bottom: 2rem; width: fit-content;
+}
+.trend-tab {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.6rem 1.2rem;
+  cursor: pointer; border-right: 1px solid var(--border);
+  color: var(--text-muted); transition: all 0.2s;
+  background: var(--bg); border-radius: 0;
+}
+.trend-tab:last-child { border-right: none; }
+.trend-tab.active { background: var(--primary); color: var(--bg); }
+.trend-tab:hover:not(.active) { color: var(--primary); background: rgba(159,122,234,0.06); }
+
+.trend-chart-wrap {
+  position: relative; height: 320px;
+  border: 1px solid var(--border); background: var(--bg); padding: 1.5rem;
+}
+.trend-chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* ── REACTION FILTER ───────────────────────────────── */
+.reaction-filter { margin: 1.5rem 0; }
+.filter-group {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem;
+  align-items: center;
+}
+.filter-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase; min-width: 60px;
+}
+
+/* reaction cards */
+.reaction-card {
+  border: 1px solid var(--border); padding: 1.4rem 1.6rem; margin-bottom: 1px;
+  transition: all 0.3s ease; background: var(--bg);
+  position: relative; overflow: hidden;
+}
+.reaction-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform 0.35s ease;
+}
+.reaction-card:hover::before { transform: scaleY(1); }
+.reaction-card.hidden { display: none; }
+.reaction-card:hover { border-color: rgba(159,122,234,0.3); transform: translateX(4px); }
+
+.rc-formula { font-family: var(--mono); font-size: 0.85rem; color: var(--primary); margin-bottom: 0.4rem; }
+.rc-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.rc-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.rc-tag {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.18rem 0.5rem;
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+
+/* ── AMBIENT SOUND TOGGLE ──────────────────────────── */
+#sound-toggle {
+  position: fixed; bottom: 2rem; left: 2rem; z-index: 100;
+  width: 38px; height: 38px;
+  background: var(--bg-alt); border: 1px solid var(--border-med);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--text-muted);
+  transition: all 0.22s; border-radius: 50%;
+  opacity: 0.7;
+}
+#sound-toggle:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+#sound-toggle.sound-on { background: var(--primary); color: var(--bg); border-color: var(--primary); opacity: 1; }
+
+/* ── ELEMENT HOVER PREVIEW ─────────────────────────── */
+#el-hover-preview {
+  position: fixed; z-index: 500; pointer-events: none;
+  background: var(--primary); color: var(--bg);
+  padding: 0.8rem 1.1rem; border: 1px solid rgba(159,122,234,0.3);
+  max-width: 200px; min-width: 150px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.18s, transform 0.18s;
+  font-family: var(--mono);
+}
+#el-hover-preview.visible { opacity: 1; transform: translateY(0); }
+#el-hover-preview .ph-sym { font-family: var(--serif); font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1; }
+#el-hover-preview .ph-name { font-size: 0.75rem; margin: 0.2rem 0; }
+#el-hover-preview .ph-num { font-size: 0.6rem; opacity: 0.6; letter-spacing: 0.08em; }
+#el-hover-preview .ph-desc { font-size: 0.6rem; opacity: 0.7; margin-top: 0.4rem; line-height: 1.5; }
+
+/* ── SCROLL PROGRESS (thicker, brighter) ───────────── */
+#scroll-progress {
+  height: 3px !important;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--highlight)) !important;
+  box-shadow: 0 0 8px rgba(159,122,234,0.4);
+}
+
+/* ── BACK TO TOP (circular) ────────────────────────── */
+#back-to-top {
+  border-radius: 50% !important;
+  width: 44px !important; height: 44px !important;
+  box-shadow: var(--shadow-violet);
+  transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1) !important;
+}
+#back-to-top:hover { transform: translateY(-3px) scale(1.08) !important; }
+
+/* ── MOBILE REDUCTION ──────────────────────────────── */
+@media (max-width: 768px) {
+  #cs-particle-canvas { display: none; }
+  .sci-panel:hover { transform: none; }
+  .mol-card:hover { transform: none; }
+  .compare-body { grid-template-columns: 1fr; }
+  .compare-vs { display: none; }
+}
+
+/* ── KEYFRAMES ─────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
+
+</style>
+<style>
+/* ═══════════════════════════════════════════════
+   CHEMSPREAD · DESIGN SYSTEM v2.0
+   Violet Scientific Editorial Theme
+   ═══════════════════════════════════════════════ */
+
+/* ── DESIGN TOKENS ──────────────────────────────── */
+:root {
+  /* Core palette */
+  --primary:   #2D1B69;
+  --secondary: #4B2E83;
+  --accent:    #9F7AEA;
+  --highlight: #5A4FCF;
+  --bg:        #F4F1FA;
+  --bg-alt:    #EDE9F5;
+  --bg-dark:   #1A1128;
+  --text:      #1E1E2E;
+  --text-muted:#6B6580;
+  --border:    rgba(45,27,105,0.12);
+  --border-med:rgba(45,27,105,0.22);
+  --border-strong:rgba(45,27,105,0.38);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(45,27,105,0.08);
+  --shadow-md: 0 4px 16px rgba(45,27,105,0.12);
+  --shadow-violet: 0 2px 20px rgba(90,79,207,0.18);
+
+  /* Typography */
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'IBM Plex Sans', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.4rem;
+  --space-sm: 0.8rem;
+  --space-md: 1.6rem;
+  --space-lg: 3.2rem;
+  --space-xl: 6rem;
+  --space-2xl:9rem;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --t-fast: 0.18s;
+  --t-med:  0.35s;
+  --t-slow: 0.6s;
+}
+
+/* ── RESET & BASE ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.75;
+  overflow-x: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── TYPOGRAPHY ──────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--primary);
+}
+h1 { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+h3 { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+h4 { font-size: 1.1rem; }
+
+p { color: var(--text); }
+em { font-family: var(--serif); font-style: italic; }
+strong { font-weight: 500; }
+a { color: inherit; text-decoration: none; }
+
+.label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.text-muted { color: var(--text-muted); }
+.body-lg { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 clamp(1.2rem, 5vw, 4rem);
+}
+.section { padding: var(--space-xl) 0; }
+.section + .section { border-top: 1px solid var(--border); }
+
+/* ── FORMULA WATERMARK ───────────────────────────── */
+.formula-bg {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden;
+  z-index: 0; opacity: 0.04;
+  font-family: var(--mono); font-size: clamp(0.7rem, 1vw, 0.9rem);
+  color: var(--primary); line-height: 3; word-break: break-all;
+  padding: 2rem; user-select: none;
+}
+
+/* ── SCROLL PROGRESS ─────────────────────────────── */
+#scroll-progress {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── NAVIGATION ──────────────────────────────────── */
+#main-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(244, 241, 250, 0.93);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow var(--t-med) var(--ease);
+}
+#main-nav.scrolled { box-shadow: var(--shadow-md); }
+
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.85rem clamp(1.2rem, 5vw, 4rem);
+  gap: 2rem;
+}
+.nav-logo {
+  font-family: var(--serif); font-size: 1.3rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; white-space: nowrap;
+}
+.nav-logo sup {
+  font-family: var(--mono); font-size: 0.48rem;
+  color: var(--accent); letter-spacing: 0.1em; vertical-align: super;
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  font-size: 0.8rem; font-weight: 400; letter-spacing: 0.04em;
+  color: var(--text-muted);
+  transition: color var(--t-fast);
+  position: relative; padding-bottom: 2px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1px;
+  background: var(--accent); transition: width var(--t-med) var(--ease);
+}
+.nav-links a:hover, .nav-links a.active { color: var(--primary); }
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+.nav-search {
+  display: flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border-med); padding: 0.35rem 0.8rem;
+  background: transparent; transition: border-color var(--t-fast);
+}
+.nav-search:focus-within { border-color: var(--accent); }
+.nav-search input {
+  border: none; background: transparent; outline: none;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text); width: 140px;
+}
+.nav-search input::placeholder { color: var(--text-muted); }
+.nav-search-icon { color: var(--text-muted); font-size: 0.75rem; }
+
+.nav-cta {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; border: 1px solid var(--primary);
+  color: var(--primary); padding: 0.45rem 1.1rem;
+  transition: background var(--t-fast), color var(--t-fast);
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--primary); color: var(--bg); }
+
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 4px;
+  cursor: pointer; padding: 4px;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--primary); transition: all var(--t-med);
+}
+
+/* ── BREADCRUMB ──────────────────────────────────── */
+.breadcrumb {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em;
+  color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.breadcrumb a { color: var(--accent); }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb-sep { opacity: 0.4; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer; transition: all var(--t-med) var(--ease);
+  border: none; background: none;
+}
+.btn-primary {
+  background: var(--primary); color: var(--bg);
+  padding: 0.75rem 1.8rem;
+}
+.btn-primary:hover {
+  background: var(--highlight);
+  box-shadow: 0 4px 16px rgba(90,79,207,0.3);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  border: 1px solid var(--border-strong); color: var(--primary);
+  padding: 0.75rem 1.8rem;
+}
+.btn-outline:hover {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(159,122,234,0.1);
+}
+.btn-ghost {
+  color: var(--text-muted); border-bottom: 1px solid var(--border-med);
+  padding-bottom: 2px; border-radius: 0;
+}
+.btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── SCIENTIFIC PANELS (replaces generic cards) ─── */
+.sci-panel {
+  border: 1px solid var(--border);
+  padding: 2rem 1.8rem;
+  background: var(--bg);
+  transition: border-color var(--t-med), box-shadow var(--t-med);
+  position: relative; overflow: hidden;
+}
+.sci-panel::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 2px; height: 0;
+  background: linear-gradient(180deg, var(--accent), var(--highlight));
+  transition: height var(--t-slow) var(--ease);
+}
+.sci-panel:hover::before { height: 100%; }
+.sci-panel:hover {
+  border-color: rgba(159,122,234,0.3);
+  box-shadow: var(--shadow-violet);
+}
+
+/* ── SECTION DIVIDERS ────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3; margin: var(--space-lg) 0;
+}
+.divider-molecule {
+  display: flex; align-items: center; gap: 1.2rem;
+  margin: var(--space-lg) 0; opacity: 0.3;
+}
+.divider-molecule::before, .divider-molecule::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent));
+}
+.divider-molecule::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.divider-molecule-icon {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--accent);
+}
+
+/* ── DID YOU KNOW BLOCKS ─────────────────────────── */
+.dyk-block {
+  border-left: 3px solid var(--accent);
+  padding: 1.2rem 1.6rem; background: rgba(159,122,234,0.06);
+  margin: 2rem 0; position: relative;
+}
+.dyk-block .dyk-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
+}
+.dyk-block p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* ── KEY INSIGHT ─────────────────────────────────── */
+.insight-block {
+  background: var(--primary); color: var(--bg);
+  padding: 2rem 2.5rem; position: relative; overflow: hidden;
+}
+.insight-block::before {
+  content: '"'; position: absolute; top: -1.5rem; left: 1.2rem;
+  font-family: var(--serif); font-size: 8rem; color: var(--accent);
+  opacity: 0.12; line-height: 1; pointer-events: none;
+}
+.insight-block .insight-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+}
+.insight-block .insight-text {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.25rem; line-height: 1.6; font-weight: 300;
+}
+
+/* ── QUICK SUMMARY PANEL ─────────────────────────── */
+.quick-summary {
+  border: 1px solid var(--border-med); padding: 1.6rem 2rem;
+  background: rgba(159,122,234,0.04); margin-bottom: 2.5rem;
+}
+.quick-summary-label {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;
+}
+.quick-summary-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border-med);
+}
+.quick-summary ul { list-style: none; }
+.quick-summary ul li {
+  font-size: 0.88rem; padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border); color: var(--text-muted);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+.quick-summary ul li::before {
+  content: '→'; font-family: var(--mono); font-size: 0.65rem;
+  color: var(--accent); flex-shrink: 0;
+}
+
+/* ── TOOLTIPS ────────────────────────────────────── */
+.tooltip {
+  position: relative; border-bottom: 1px dashed var(--accent);
+  cursor: help; display: inline-block;
+}
+.tooltip::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--primary); color: var(--bg);
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.04em;
+  white-space: nowrap; padding: 0.4rem 0.8rem;
+  pointer-events: none; opacity: 0;
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  z-index: 50;
+}
+.tooltip:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ── SCROLL REVEAL ───────────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity var(--t-slow) var(--ease-out),
+              transform var(--t-slow) var(--ease-out);
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── BACK TO TOP ─────────────────────────────────── */
+#back-to-top {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 100;
+  width: 42px; height: 42px;
+  background: var(--primary); color: var(--bg);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; opacity: 0; pointer-events: none;
+  transition: opacity var(--t-med), transform var(--t-med), background var(--t-fast);
+  transform: translateY(8px);
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; transform: none; }
+#back-to-top:hover { background: var(--highlight); transform: translateY(-2px); }
+
+/* ── FOOTER ──────────────────────────────────────── */
+#main-footer {
+  border-top: 1px solid var(--border-med);
+  padding: 4rem 0 2rem; background: var(--bg-alt);
+}
+.footer-grid {
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem;
+  margin-bottom: 2.5rem;
+}
+.footer-brand-name {
+  font-family: var(--serif); font-size: 1.2rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; display: block;
+  margin-bottom: 0.7rem;
+}
+.footer-brand p { font-size: 0.8rem; color: var(--text-muted); max-width: 26ch; }
+.footer-col h4 {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+}
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 0.5rem; }
+.footer-col ul a { font-size: 0.82rem; color: var(--text-muted); transition: color var(--t-fast); }
+.footer-col ul a:hover { color: var(--primary); }
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.5rem; border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted);
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+/* ── ATOMIC ORBIT ANIMATION ──────────────────────── */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(28px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(28px) rotate(-360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(20px) rotate(360deg); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(159,122,234,0); }
+  50% { box-shadow: 0 0 0 6px rgba(159,122,234,0.12); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links, .nav-search { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-links.open {
+    display: flex; flex-direction: column;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 1.5rem clamp(1.2rem, 5vw, 4rem);
+    gap: 1.2rem;
+  }
+  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   CHEMSPREAD · INTERACTIONS v3.0
+   Animation system, micro-interactions, particle canvas,
+   DYK engine, ripple, molecule hover, compound tags
+   ═══════════════════════════════════════════════════════ */
+
+/* ── ENHANCED REVEAL SYSTEM ────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.65s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.65s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* stagger children */
+.reveal-stagger > * {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity 0.55s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.55s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay: 0.13s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay: 0.21s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay: 0.29s; }
+.reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay: 0.37s; }
+.reveal-stagger.visible > *:nth-child(6) { opacity:1; transform:none; transition-delay: 0.45s; }
+
+/* ── PARTICLE CANVAS ───────────────────────────────── */
+#cs-particle-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; opacity: 0.35;
+}
+
+/* ── BUTTON UPGRADES ───────────────────────────────── */
+.btn-primary,
+.btn-outline,
+.btn,
+.calc-btn-run,
+.nav-cta {
+  position: relative; overflow: hidden;
+  transform: translateZ(0); /* GPU layer */
+}
+/* ripple */
+.ripple-wave {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0); animation: rippleAnim 0.55s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(3.5); opacity: 0; }
+}
+
+/* hover scale + glow */
+.btn-primary:hover,
+.calc-btn-run:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 22px rgba(90,79,207,0.32);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* ── SCI-PANEL HOVER LIFT ──────────────────────────── */
+.sci-panel {
+  transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1),
+              border-color 0.35s, box-shadow 0.35s;
+}
+.sci-panel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(90,79,207,0.14);
+}
+
+/* ── TEXT UNDERLINE GROW ───────────────────────────── */
+.ul-grow {
+  position: relative; display: inline-block;
+}
+.ul-grow::after {
+  content: ''; position: absolute; bottom: -1px; left: 0;
+  width: 0; height: 1px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1);
+}
+.ul-grow:hover::after { width: 100%; }
+
+/* ── DID-YOU-KNOW ENGINE ───────────────────────────── */
+.dyk-rotating {
+  position: relative; overflow: hidden;
+  min-height: 60px;
+}
+.dyk-rotating p {
+  position: absolute; inset: 0;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  padding-top: 2px;
+}
+.dyk-rotating p.dyk-active {
+  opacity: 1; transform: translateY(0);
+  position: relative;
+}
+.dyk-dots {
+  display: flex; gap: 5px; margin-top: 0.8rem;
+}
+.dyk-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border-strong); cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+}
+.dyk-dot.active { background: var(--accent); transform: scale(1.3); }
+
+/* ── MOLECULE CARD HOVER ───────────────────────────── */
+.mol-card {
+  transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1),
+              box-shadow 0.4s;
+}
+.mol-card:hover {
+  transform: rotate(1.5deg) translateY(-4px);
+  box-shadow: 0 10px 28px rgba(90,79,207,0.16);
+}
+.mol-card:hover .mol-bond { stroke: var(--accent); filter: drop-shadow(0 0 3px rgba(159,122,234,0.5)); }
+.mol-card:hover .mol-atom { fill: var(--highlight); }
+
+/* ── COMPOUND TAGS ─────────────────────────────────── */
+.tag-system { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.2rem 0; }
+.chem-tag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.28rem 0.65rem;
+  border: 1px solid var(--border-med); color: var(--text-muted);
+  cursor: pointer; transition: all 0.22s;
+  user-select: none;
+}
+.chem-tag:hover { border-color: var(--accent); color: var(--accent); }
+.chem-tag.tag-active {
+  background: var(--primary); color: var(--bg); border-color: var(--primary);
+}
+.chem-tag[data-tag="organic"]    { --tc: #9F7AEA; }
+.chem-tag[data-tag="inorganic"]  { --tc: #5A4FCF; }
+.chem-tag[data-tag="industrial"] { --tc: #B87333; }
+.chem-tag[data-tag="biological"] { --tc: #27AE60; }
+.chem-tag.tag-active { background: var(--tc,var(--primary)); border-color: var(--tc,var(--primary)); }
+
+/* ── ELEMENT COMPARISON PANEL ──────────────────────── */
+#compare-panel {
+  display: none; margin-top: 2rem;
+  border: 1px solid var(--border-med);
+  animation: fadeSlideUp 0.35s ease;
+  overflow: hidden;
+}
+#compare-panel.open { display: block; }
+
+.compare-header {
+  background: var(--primary); color: var(--bg);
+  padding: 0.9rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+}
+.compare-close {
+  cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+  background: none; border: none; color: var(--bg); font-size: 1rem;
+}
+.compare-close:hover { opacity: 1; }
+
+.compare-body {
+  display: grid; grid-template-columns: 1fr 60px 1fr;
+  gap: 0; background: var(--bg);
+}
+.compare-col {
+  padding: 1.8rem;
+}
+.compare-col:first-child { border-right: 1px solid var(--border); }
+.compare-col:last-child  { border-left: 1px solid var(--border); }
+.compare-vs {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 1.2rem; color: var(--text-muted);
+  font-style: italic;
+}
+.compare-symbol {
+  font-family: var(--serif); font-size: 3.5rem; font-weight: 700;
+  color: var(--primary); line-height: 1; margin-bottom: 0.2rem;
+}
+.compare-name {
+  font-family: var(--serif); font-size: 1.2rem; color: var(--primary); margin-bottom: 1rem;
+}
+.compare-row {
+  padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.83rem;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-key { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
+.compare-val { font-family: var(--serif); font-size: 1rem; color: var(--text); }
+.compare-bar-wrap { margin-top: 0.3rem; height: 3px; background: var(--border); }
+.compare-bar {
+  height: 100%; background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.8s cubic-bezier(0.25,0.8,0.25,1); width: 0;
+}
+
+/* compare select buttons on periodic table */
+.el-compare-btn {
+  position: absolute; top: 2px; right: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; z-index: 5;
+  transition: background 0.18s, border-color 0.18s;
+  display: none;
+}
+.el:hover .el-compare-btn { display: block; }
+.el-compare-btn:hover { background: var(--accent); border-color: var(--accent); }
+.el.compare-selected { background: rgba(159,122,234,0.12) !important; border-color: var(--accent) !important; }
+.el.compare-selected .el-compare-btn { display: block; background: var(--accent); border-color: var(--accent); }
+
+/* ── TREND CHARTS SECTION ──────────────────────────── */
+#trend-charts {
+  padding: 3rem 0 4rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.trend-tabs {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  margin-bottom: 2rem; width: fit-content;
+}
+.trend-tab {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.6rem 1.2rem;
+  cursor: pointer; border-right: 1px solid var(--border);
+  color: var(--text-muted); transition: all 0.2s;
+  background: var(--bg); border-radius: 0;
+}
+.trend-tab:last-child { border-right: none; }
+.trend-tab.active { background: var(--primary); color: var(--bg); }
+.trend-tab:hover:not(.active) { color: var(--primary); background: rgba(159,122,234,0.06); }
+
+.trend-chart-wrap {
+  position: relative; height: 320px;
+  border: 1px solid var(--border); background: var(--bg); padding: 1.5rem;
+}
+.trend-chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* ── REACTION FILTER ───────────────────────────────── */
+.reaction-filter { margin: 1.5rem 0; }
+.filter-group {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem;
+  align-items: center;
+}
+.filter-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase; min-width: 60px;
+}
+
+/* reaction cards */
+.reaction-card {
+  border: 1px solid var(--border); padding: 1.4rem 1.6rem; margin-bottom: 1px;
+  transition: all 0.3s ease; background: var(--bg);
+  position: relative; overflow: hidden;
+}
+.reaction-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform 0.35s ease;
+}
+.reaction-card:hover::before { transform: scaleY(1); }
+.reaction-card.hidden { display: none; }
+.reaction-card:hover { border-color: rgba(159,122,234,0.3); transform: translateX(4px); }
+
+.rc-formula { font-family: var(--mono); font-size: 0.85rem; color: var(--primary); margin-bottom: 0.4rem; }
+.rc-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.rc-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.rc-tag {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.18rem 0.5rem;
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+
+/* ── AMBIENT SOUND TOGGLE ──────────────────────────── */
+#sound-toggle {
+  position: fixed; bottom: 2rem; left: 2rem; z-index: 100;
+  width: 38px; height: 38px;
+  background: var(--bg-alt); border: 1px solid var(--border-med);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--text-muted);
+  transition: all 0.22s; border-radius: 50%;
+  opacity: 0.7;
+}
+#sound-toggle:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+#sound-toggle.sound-on { background: var(--primary); color: var(--bg); border-color: var(--primary); opacity: 1; }
+
+/* ── ELEMENT HOVER PREVIEW ─────────────────────────── */
+#el-hover-preview {
+  position: fixed; z-index: 500; pointer-events: none;
+  background: var(--primary); color: var(--bg);
+  padding: 0.8rem 1.1rem; border: 1px solid rgba(159,122,234,0.3);
+  max-width: 200px; min-width: 150px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.18s, transform 0.18s;
+  font-family: var(--mono);
+}
+#el-hover-preview.visible { opacity: 1; transform: translateY(0); }
+#el-hover-preview .ph-sym { font-family: var(--serif); font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1; }
+#el-hover-preview .ph-name { font-size: 0.75rem; margin: 0.2rem 0; }
+#el-hover-preview .ph-num { font-size: 0.6rem; opacity: 0.6; letter-spacing: 0.08em; }
+#el-hover-preview .ph-desc { font-size: 0.6rem; opacity: 0.7; margin-top: 0.4rem; line-height: 1.5; }
+
+/* ── SCROLL PROGRESS (thicker, brighter) ───────────── */
+#scroll-progress {
+  height: 3px !important;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--highlight)) !important;
+  box-shadow: 0 0 8px rgba(159,122,234,0.4);
+}
+
+/* ── BACK TO TOP (circular) ────────────────────────── */
+#back-to-top {
+  border-radius: 50% !important;
+  width: 44px !important; height: 44px !important;
+  box-shadow: var(--shadow-violet);
+  transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1) !important;
+}
+#back-to-top:hover { transform: translateY(-3px) scale(1.08) !important; }
+
+/* ── MOBILE REDUCTION ──────────────────────────────── */
+@media (max-width: 768px) {
+  #cs-particle-canvas { display: none; }
+  .sci-panel:hover { transform: none; }
+  .mol-card:hover { transform: none; }
+  .compare-body { grid-template-columns: 1fr; }
+  .compare-vs { display: none; }
+}
+
+/* ── KEYFRAMES ─────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
+
+</style>
+<style>
+.quiz-wrap{padding:3rem 0 5rem}
+.quiz-cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.5rem;margin:2rem 0}
+.quiz-cat-card{border:1px solid var(--border);padding:1.8rem 1.6rem;cursor:pointer;transition:all .25s;background:var(--bg);position:relative;overflow:hidden}
+.quiz-cat-card::before{content:'';position:absolute;top:0;left:0;width:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--highlight));transition:width .4s}
+.quiz-cat-card:hover::before{width:100%}
+.quiz-cat-card:hover{border-color:rgba(159,122,234,.3);transform:translateY(-3px);box-shadow:0 8px 24px rgba(90,79,207,.1)}
+.quiz-cat-icon{font-size:1.8rem;margin-bottom:.6rem}
+.quiz-cat-title{font-family:var(--serif);font-size:1.1rem;color:var(--primary);margin-bottom:.3rem}
+.quiz-cat-count{font-family:var(--mono);font-size:.62rem;color:var(--text-muted)}
+.quiz-difficulty{display:flex;gap:.4rem;margin-top:.5rem;flex-wrap:wrap}
+.diff-badge{font-family:var(--mono);font-size:.52rem;letter-spacing:.08em;text-transform:uppercase;padding:.15rem .45rem;border:1px solid var(--border);color:var(--text-muted)}
+.diff-easy{border-color:rgba(39,174,96,.4);color:#27AE60}
+.diff-med{border-color:rgba(243,156,18,.4);color:#F39C12}
+.diff-hard{border-color:rgba(231,76,60,.35);color:#e74c3c}
+#quiz-arena{display:none}
+.q-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.q-meta{font-family:var(--mono);font-size:.65rem;color:var(--text-muted)}
+.q-progress-bar{height:3px;background:var(--border);margin-bottom:2rem}
+.q-progress-fill{height:100%;background:linear-gradient(90deg,var(--highlight),var(--accent));transition:width .4s}
+.q-question{font-family:var(--serif);font-size:1.4rem;color:var(--primary);line-height:1.4;margin-bottom:2rem}
+.q-options{list-style:none;display:grid;gap:.8rem}
+.q-opt{border:1px solid var(--border-med);padding:1rem 1.4rem;cursor:pointer;transition:all .2s;font-size:.9rem;position:relative;overflow:hidden;background:var(--bg)}
+.q-opt:hover:not(.answered){border-color:var(--accent);color:var(--primary);transform:translateX(4px)}
+.q-opt.correct{border-color:#27AE60;background:rgba(39,174,96,.06);color:#27AE60}
+.q-opt.wrong{border-color:#e74c3c;background:rgba(231,76,60,.06);color:#e74c3c}
+.q-opt.answered{pointer-events:none}
+.q-feedback{margin-top:1.2rem;padding:1rem 1.4rem;font-size:.85rem;line-height:1.7;display:none}
+.q-feedback.show{display:block}
+.q-feedback.correct-fb{border-left:3px solid #27AE60;background:rgba(39,174,96,.05);color:var(--text-muted)}
+.q-feedback.wrong-fb{border-left:3px solid #e74c3c;background:rgba(231,76,60,.04);color:var(--text-muted)}
+.q-next{display:none;margin-top:1.2rem}
+.q-next.show{display:flex}
+.score-screen{text-align:center;padding:3rem 0;display:none}
+.score-num{font-family:var(--serif);font-size:5rem;font-weight:700;color:var(--primary);line-height:1}
+.score-label{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-top:.5rem}
+.score-grade{font-family:var(--serif);font-size:2rem;color:var(--accent);margin:1rem 0}
+</style>
+</head>
+<body style="padding-top:58px">
+<div class="page-hero" style="padding:3.5rem 0 2rem;border-bottom:1px solid var(--border)">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">/</span><span>Quiz</span></div>
+    <span class="label">Interactive · MCQ · Instant Feedback</span>
+    <h1 style="margin-top:.4rem">Chemistry Quiz</h1>
+    <p class="body-lg" style="margin-top:.5rem;max-width:52ch">Test your knowledge across topics. Each question includes detailed feedback to reinforce your understanding.</p>
+  </div>
+</div>
+<div class="quiz-wrap">
+<div class="container">
+
+  <div id="quiz-menu">
+    <div class="quiz-cat-grid">
+      <div class="quiz-cat-card reveal" onclick="startQuiz('basics')">
+        <div class="quiz-cat-icon">⚛️</div>
+        <div class="quiz-cat-title">Atomic Structure &amp; Bonding</div>
+        <div class="quiz-cat-count">10 questions</div>
+        <div class="quiz-difficulty"><span class="diff-badge diff-easy">Easy</span><span class="diff-badge diff-med">Medium</span></div>
+      </div>
+      <div class="quiz-cat-card reveal" style="transition-delay:.06s" onclick="startQuiz('thermo')">
+        <div class="quiz-cat-icon">🔥</div>
+        <div class="quiz-cat-title">Thermochemistry</div>
+        <div class="quiz-cat-count">10 questions</div>
+        <div class="quiz-difficulty"><span class="diff-badge diff-med">Medium</span><span class="diff-badge diff-hard">Hard</span></div>
+      </div>
+      <div class="quiz-cat-card reveal" style="transition-delay:.12s" onclick="startQuiz('organic')">
+        <div class="quiz-cat-icon">🧬</div>
+        <div class="quiz-cat-title">Organic Chemistry</div>
+        <div class="quiz-cat-count">10 questions</div>
+        <div class="quiz-difficulty"><span class="diff-badge diff-easy">Easy</span><span class="diff-badge diff-hard">Hard</span></div>
+      </div>
+      <div class="quiz-cat-card reveal" style="transition-delay:.18s" onclick="startQuiz('acids')">
+        <div class="quiz-cat-icon">⚗️</div>
+        <div class="quiz-cat-title">Acids, Bases &amp; Redox</div>
+        <div class="quiz-cat-count">10 questions</div>
+        <div class="quiz-difficulty"><span class="diff-badge diff-easy">Easy</span><span class="diff-badge diff-med">Medium</span></div>
+      </div>
+      <div class="quiz-cat-card reveal" style="transition-delay:.24s" onclick="startQuiz('elements')">
+        <div class="quiz-cat-icon">🔬</div>
+        <div class="quiz-cat-title">Elements &amp; Periodic Table</div>
+        <div class="quiz-cat-count">10 questions</div>
+        <div class="quiz-difficulty"><span class="diff-badge diff-easy">Easy</span><span class="diff-badge diff-med">Medium</span></div>
+      </div>
+      <div class="quiz-cat-card reveal" style="transition-delay:.3s" onclick="startQuiz('industrial')">
+        <div class="quiz-cat-icon">🏭</div>
+        <div class="quiz-cat-title">Industrial Chemistry</div>
+        <div class="quiz-cat-count">10 questions</div>
+        <div class="quiz-difficulty"><span class="diff-badge diff-med">Medium</span><span class="diff-badge diff-hard">Hard</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="quiz-arena">
+    <div class="q-header">
+      <div id="q-cat-title" class="q-meta"></div>
+      <div id="q-counter" class="q-meta"></div>
+    </div>
+    <div class="q-progress-bar"><div class="q-progress-fill" id="q-progress"></div></div>
+    <div id="q-question" class="q-question"></div>
+    <ul class="q-options" id="q-options"></ul>
+    <div class="q-feedback" id="q-feedback"></div>
+    <div class="q-next show" id="q-next">
+      <button class="btn btn-primary" onclick="nextQ()" id="q-next-btn">Next Question →</button>
+      <button class="btn btn-ghost" onclick="endQuiz()" style="margin-left:1.5rem">End Quiz</button>
+    </div>
+  </div>
+
+  <div class="score-screen" id="score-screen">
+    <div id="score-num" class="score-num"></div>
+    <div class="score-label">Questions Correct</div>
+    <div id="score-grade" class="score-grade"></div>
+    <p id="score-msg" style="color:var(--text-muted);max-width:40ch;margin:.8rem auto;font-size:.9rem"></p>
+    <div style="display:flex;gap:1rem;justify-content:center;margin-top:2rem">
+      <button class="btn btn-primary" onclick="restartQuiz()">Try Again</button>
+      <a href="quiz.html" class="btn btn-outline">Choose Another Topic</a>
+    </div>
+  </div>
+
+</div>
+</div>
+<script>
+const QUIZ_BANK = {
+  basics:[
+    {q:"What is the atomic number of Carbon?",opts:["4","6","8","12"],ans:1,exp:"Carbon has 6 protons — this is its atomic number. The mass number (12) includes neutrons."},
+    {q:"Which subatomic particle has no charge?",opts:["Proton","Electron","Neutron","Positron"],ans:2,exp:"Neutrons are electrically neutral. Protons are +1 and electrons are −1."},
+    {q:"What does the Aufbau principle state?",opts:["Electrons fill highest energy first","No two electrons have identical quantum numbers","Electrons fill lowest energy orbitals first","Orbitals of same energy fill singly first"],ans:2,exp:"Aufbau (German: 'building up') states electrons fill the lowest available energy orbitals first."},
+    {q:"Which bond involves complete electron transfer?",opts:["Covalent","Metallic","Ionic","Hydrogen"],ans:2,exp:"Ionic bonds form when one atom transfers electrons to another, creating oppositely charged ions."},
+    {q:"The shape of water (H₂O) is:",opts:["Linear","Tetrahedral","Bent/Angular","Trigonal planar"],ans:2,exp:"H₂O has 2 bonding pairs and 2 lone pairs. VSEPR theory predicts a bent shape with ~104.5° bond angle."},
+    {q:"Which quantum number describes the shape of an orbital?",opts:["Principal (n)","Azimuthal (l)","Magnetic (mₗ)","Spin (mₛ)"],ans:1,exp:"The azimuthal quantum number l determines orbital shape: 0=s, 1=p, 2=d, 3=f."},
+    {q:"Electronegativity increases in which direction across a period?",opts:["Left to right","Right to left","Top to bottom","No trend"],ans:0,exp:"Electronegativity increases left to right across a period as nuclear charge increases."},
+    {q:"What is the hybridisation of carbon in methane (CH₄)?",opts:["sp","sp²","sp³","sp³d"],ans:2,exp:"Carbon in CH₄ uses sp³ hybridisation, giving 4 equivalent bonds and a tetrahedral geometry."},
+    {q:"How many electrons can a 3d subshell hold?",opts:["2","6","10","14"],ans:2,exp:"The d subshell has 5 orbitals, each holding 2 electrons: 5 × 2 = 10 electrons maximum."},
+    {q:"Which is the strongest type of intermolecular force?",opts:["London dispersion","Dipole-dipole","Hydrogen bonding","Covalent bond"],ans:2,exp:"Hydrogen bonding (O-H, N-H, F-H) is the strongest intermolecular force, though weaker than intramolecular covalent bonds."},
+  ],
+  thermo:[
+    {q:"A reaction with ΔH < 0 is:",opts:["Endothermic","Exothermic","Isothermal","Spontaneous"],ans:1,exp:"ΔH < 0 means the system releases heat to surroundings — this is exothermic. Examples: combustion, neutralisation."},
+    {q:"Hess's Law states that ΔH is:",opts:["Always negative","Path-independent","Temperature-dependent","Equal to ΔG"],ans:1,exp:"Hess's Law: total enthalpy change is independent of the route taken — only initial and final states matter."},
+    {q:"The Gibbs free energy equation is:",opts:["ΔG = ΔH + TΔS","ΔG = ΔH − TΔS","ΔG = ΔS − TΔH","ΔG = ΔH × ΔS"],ans:1,exp:"ΔG = ΔH − TΔS. A reaction is spontaneous when ΔG < 0."},
+    {q:"Entropy is a measure of:",opts:["Heat content","Energy released","Disorder/randomness","Bond strength"],ans:2,exp:"Entropy (S) measures the degree of disorder or randomness in a system. Spontaneous processes tend to increase total entropy."},
+    {q:"Bond energies are always:",opts:["Negative","Positive","Zero","Variable in sign"],ans:1,exp:"Bond energies are always positive because energy must be INPUT to break bonds. Forming bonds releases energy."},
+    {q:"Which process has ΔS > 0 (entropy increases)?",opts:["Freezing water","Dissolving sugar in water","Diamond formation","Gas condensing to liquid"],ans:1,exp:"Dissolving increases disorder (more particles with more arrangements) so entropy increases."},
+    {q:"Activation energy is lowered by:",opts:["Increasing pressure","Increasing temperature","Adding a catalyst","Adding more reactant"],ans:2,exp:"A catalyst provides an alternative reaction pathway with lower activation energy, speeding the reaction without being consumed."},
+    {q:"For a spontaneous reaction at all temperatures:",opts:["ΔH>0, ΔS>0","ΔH<0, ΔS>0","ΔH<0, ΔS<0","ΔH>0, ΔS<0"],ans:1,exp:"When ΔH<0 (exothermic) and ΔS>0 (entropy increases), ΔG = ΔH − TΔS is always negative regardless of temperature."},
+    {q:"The standard enthalpy of formation of an element in its standard state is:",opts:["Unknown","Positive","Negative","Zero"],ans:3,exp:"By definition, the standard enthalpy of formation (ΔHf°) of any element in its standard state is zero."},
+    {q:"Which equation relates heat to specific heat capacity?",opts:["q = m × T","q = m × c × ΔT","q = c / (m × T)","q = m / (c × ΔT)"],ans:1,exp:"q = mcΔT where m is mass (g), c is specific heat capacity (J/g·K), and ΔT is temperature change."},
+  ],
+  organic:[
+    {q:"What is the general formula for alkanes?",opts:["CₙH₂ₙ","CₙH₂ₙ₊₂","CₙH₂ₙ₋₂","CₙHₙ"],ans:1,exp:"Alkanes are saturated hydrocarbons with only single bonds: general formula CₙH₂ₙ₊₂. e.g. methane CH₄ (n=1)."},
+    {q:"Which functional group is present in alcohols?",opts:["–COOH","–CHO","–OH","–NH₂"],ans:2,exp:"Alcohols contain the hydroxyl group (–OH). e.g. ethanol CH₃CH₂OH."},
+    {q:"Benzene undergoes which type of reaction preferentially?",opts:["Addition","Elimination","Substitution","Condensation"],ans:2,exp:"Benzene's delocalised π electrons give it stability. It prefers electrophilic substitution over addition to preserve aromaticity."},
+    {q:"What is the IUPAC name for CH₃CH₂CH₃?",opts:["Methane","Ethane","Propane","Butane"],ans:2,exp:"Three carbon chain with all single bonds: propane. Counting carbons: meth(1), eth(2), prop(3), but(4)."},
+    {q:"Saponification is the reaction of a fat with:",opts:["Acid","Base (NaOH)","Water","Enzyme"],ans:1,exp:"Saponification is the base hydrolysis of esters (fats) to form glycerol and soap (fatty acid salts)."},
+    {q:"Isomers are compounds with:",opts:["Same structure, different formula","Same formula, different structure","Same properties","Different elements"],ans:1,exp:"Isomers share the same molecular formula but differ in how their atoms are arranged structurally."},
+    {q:"Fermentation of glucose produces:",opts:["Methanol + CO","Ethanol + CO₂","Propanol + H₂","Acetic acid + H₂O"],ans:1,exp:"C₆H₁₂O₆ → 2C₂H₅OH + 2CO₂. Yeast enzymes convert glucose to ethanol and carbon dioxide anaerobically."},
+    {q:"Which reagent is used to test for a C=C double bond?",opts:["Fehling's solution","Bromine water","Litmus","Benedict's"],ans:1,exp:"Bromine water (Br₂) decolorises (goes from orange/brown to colourless) when added to an alkene — the Br₂ adds across the double bond."},
+    {q:"Esterification produces:",opts:["Alcohol + base","Ester + water","Acid + alcohol","Salt + water"],ans:1,exp:"Acid + Alcohol ⇌ Ester + Water. This reversible reaction is catalysed by concentrated H₂SO₄."},
+    {q:"The homologous series of alcohols has the general formula:",opts:["CₙH₂ₙ₊₁OH","CₙH₂ₙOH","CₙHₙOH","CₙH₂ₙ₋₁OH"],ans:0,exp:"Alcohols = alkane chain + OH group: CₙH₂ₙ₊₁OH. e.g. methanol CH₃OH, ethanol C₂H₅OH."},
+  ],
+  acids:[
+    {q:"pH of a neutral solution at 25°C is:",opts:["0","7","14","1"],ans:1,exp:"At 25°C, pure water has [H⁺]=[OH⁻]=10⁻⁷ mol/L. pH = −log(10⁻⁷) = 7."},
+    {q:"A buffer solution resists changes in:",opts:["Temperature","Concentration","pH","Colour"],ans:2,exp:"Buffer solutions resist pH changes because they contain both a weak acid and its conjugate base, neutralising added acid or base."},
+    {q:"OIL RIG stands for:",opts:["Oxidation Is Loss, Reduction Is Gain","Only In Labs, Reactions Indicate Groups","Organic Is Lost, Reduction Is Gained","None"],ans:0,exp:"OIL RIG is a mnemonic: Oxidation Is Loss (of electrons), Reduction Is Gain (of electrons)."},
+    {q:"Which acid is monoprotic?",opts:["H₂SO₄","H₃PO₄","HCl","H₂CO₃"],ans:2,exp:"HCl donates only one proton per molecule — it is monoprotic. H₂SO₄ is diprotic; H₃PO₄ is triprotic."},
+    {q:"Litmus paper turns blue in:",opts:["Acid","Base","Neutral","Salt"],ans:1,exp:"Litmus turns blue in basic solutions and red in acidic solutions. Neutral solutions do not change its colour."},
+    {q:"In a redox reaction, the reducing agent is:",opts:["Oxidised","Reduced","Unchanged","Always a metal"],ans:0,exp:"The reducing agent causes reduction in another species — in doing so, it loses electrons and is itself oxidised."},
+    {q:"The pH of 0.01 mol/L HCl is:",opts:["1","2","3","0.01"],ans:1,exp:"pH = −log[H⁺] = −log(0.01) = −log(10⁻²) = 2. HCl is a strong acid, fully dissociated."},
+    {q:"What is produced when an acid reacts with a metal carbonate?",opts:["Salt + water","Salt + water + CO₂","Salt + H₂","Salt only"],ans:1,exp:"Acid + Metal Carbonate → Salt + Water + Carbon Dioxide. e.g. HCl + CaCO₃ → CaCl₂ + H₂O + CO₂."},
+    {q:"Which is a strong base?",opts:["NH₃","Ca(OH)₂","NaOH","Al(OH)₃"],ans:2,exp:"NaOH is a strong base — it fully dissociates in water. NH₃ is a weak base; Ca(OH)₂ is moderately strong."},
+    {q:"Electrolysis of dilute H₂SO₄ produces at the cathode:",opts:["O₂","SO₄²⁻","H₂","H₂O"],ans:2,exp:"At the cathode (negative electrode), H⁺ ions are reduced: 2H⁺ + 2e⁻ → H₂. Oxygen forms at the anode."},
+  ],
+  elements:[
+    {q:"Who created the modern periodic table?",opts:["Lavoisier","Dalton","Mendeleev","Bohr"],ans:2,exp:"Dmitri Mendeleev (1869) arranged elements by atomic weight and left gaps for undiscovered elements, predicting their properties."},
+    {q:"Which group contains the noble gases?",opts:["Group 1","Group 7","Group 17","Group 18"],ans:3,exp:"Noble gases are in Group 18 (IUPAC) or Group 0 (older notation). They have full outer shells and are very unreactive."},
+    {q:"The most electronegative element is:",opts:["Oxygen","Chlorine","Fluorine","Nitrogen"],ans:2,exp:"Fluorine has an electronegativity of 3.98 on the Pauling scale — the highest of any element."},
+    {q:"Atomic radius generally _______ across a period.",opts:["Increases","Decreases","Stays the same","First increases then decreases"],ans:1,exp:"Across a period, nuclear charge increases while electron shells remain the same, pulling electrons closer and decreasing atomic radius."},
+    {q:"Which element has the electron configuration 2,8,1?",opts:["Neon","Sodium","Fluorine","Potassium"],ans:1,exp:"2,8,1 means 11 electrons — element 11 is Sodium (Na). 2 in first shell, 8 in second, 1 in third (valence electron)."},
+    {q:"What is the atomic number of Gold?",opts:["47","78","79","80"],ans:2,exp:"Gold (Au) has atomic number 79. Silver (Ag) is 47, Platinum (Pt) is 78, Mercury (Hg) is 80."},
+    {q:"Isotopes of an element differ in number of:",opts:["Protons","Electrons","Neutrons","Protons and Neutrons"],ans:2,exp:"Isotopes have the same atomic number (protons) but different mass numbers due to different numbers of neutrons."},
+    {q:"Which metal is liquid at room temperature?",opts:["Lead","Mercury","Gallium","Caesium"],ans:1,exp:"Mercury (Hg) is the only metal liquid at room temperature (melting point −38.8°C). Gallium melts at 29.8°C (near room temperature)."},
+    {q:"The lanthanides occupy which period?",opts:["Period 4","Period 5","Period 6","Period 7"],ans:2,exp:"The lanthanides (elements 57–71) are part of Period 6 and are placed in a separate row below the main table."},
+    {q:"Which is the lightest element?",opts:["Helium","Lithium","Hydrogen","Boron"],ans:2,exp:"Hydrogen (H) is the lightest element with atomic mass 1.008 u. It has just 1 proton and (usually) 0 neutrons."},
+  ],
+  industrial:[
+    {q:"The Haber process produces:",opts:["Sulphuric acid","Ammonia","Sodium hydroxide","Chlorine"],ans:1,exp:"The Haber process: N₂ + 3H₂ ⇌ 2NH₃, using an iron catalyst at 450°C and 150–300 atm."},
+    {q:"The catalyst used in the Contact Process is:",opts:["Iron","Platinum","Vanadium pentoxide","Nickel"],ans:2,exp:"V₂O₅ (vanadium pentoxide) catalyses the key step: 2SO₂ + O₂ ⇌ 2SO₃ in the Contact Process."},
+    {q:"In the Haber process, temperature is kept at 450°C as a compromise between:",opts:["Cost and safety","Rate and yield","Pressure and volume","Purity and cost"],ans:1,exp:"Higher temperature improves rate but reduces equilibrium yield (exothermic reaction). 450°C balances both."},
+    {q:"The Chlor-Alkali process uses:",opts:["Electrolysis of brine","Fractional distillation","Catalytic cracking","Thermal decomposition"],ans:0,exp:"Electrolysis of brine (NaCl solution) produces Cl₂ at the anode, H₂ at the cathode, and NaOH in solution."},
+    {q:"Which fraction from petroleum refining has the lowest boiling point?",opts:["Bitumen","Diesel","Petrol","Refinery gas"],ans:3,exp:"Refinery gas (C₁–C₄) has the lowest boiling point and rises to the top of the distillation column."},
+    {q:"Cracking of large hydrocarbons produces:",opts:["Only CO₂","Smaller alkanes and alkenes","Only alkenes","Benzene only"],ans:1,exp:"Cracking breaks large hydrocarbon molecules into smaller, more useful ones — typically alkanes and alkenes."},
+    {q:"Sulphuric acid is NOT absorbed directly in water because:",opts:["It's too cheap","It forms a dangerous acid mist","It reacts with the container","It becomes too dilute"],ans:1,exp:"SO₃ absorbed directly in water forms a fine acid mist that is hazardous and hard to contain. It's first absorbed in conc. H₂SO₄."},
+    {q:"The Contact Process produces:",opts:["Nitric acid","Hydrochloric acid","Sulphuric acid","Phosphoric acid"],ans:2,exp:"The Contact Process is the industrial route to H₂SO₄ — the world's most produced chemical."},
+    {q:"Which process is used to manufacture soap?",opts:["Esterification","Saponification","Fermentation","Cracking"],ans:1,exp:"Saponification = base hydrolysis of fats/triglycerides with NaOH to give glycerol + sodium salts of fatty acids (soap)."},
+    {q:"In petroleum refining, which property determines the fraction collected?",opts:["Colour","Density","Boiling point","Viscosity"],ans:2,exp:"Fractional distillation separates crude oil fractions by boiling point — lighter fractions collect higher up the column."},
+  ],
+};
+
+let currentBank=[], currentIdx=0, score=0, currentCat='';
+
+function startQuiz(cat){
+  currentCat=cat;
+  currentBank=[...QUIZ_BANK[cat]].sort(()=>Math.random()-.5);
+  currentIdx=0; score=0;
+  document.getElementById('quiz-menu').style.display='none';
+  document.getElementById('quiz-arena').style.display='block';
+  document.getElementById('score-screen').style.display='none';
+  const names={basics:'Atomic Structure & Bonding',thermo:'Thermochemistry',organic:'Organic Chemistry',acids:'Acids, Bases & Redox',elements:'Elements & Periodic Table',industrial:'Industrial Chemistry'};
+  document.getElementById('q-cat-title').textContent=names[cat];
+  renderQ();
+}
+
+function renderQ(){
+  const q=currentBank[currentIdx];
+  document.getElementById('q-counter').textContent=`Question ${currentIdx+1} of ${currentBank.length}`;
+  document.getElementById('q-progress').style.width=(currentIdx/currentBank.length*100)+'%';
+  document.getElementById('q-question').textContent=q.q;
+  const ol=document.getElementById('q-options');
+  ol.innerHTML=q.opts.map((o,i)=>`<li class="q-opt" onclick="answer(${i})" data-idx="${i}">${String.fromCharCode(65+i)}. ${o}</li>`).join('');
+  document.getElementById('q-feedback').className='q-feedback';
+  document.getElementById('q-feedback').textContent='';
+  document.getElementById('q-next').className='q-next';
+  const nextBtn=document.getElementById('q-next-btn');
+  nextBtn.textContent=currentIdx<currentBank.length-1?'Next Question →':'See Results';
+}
+
+function answer(idx){
+  const q=currentBank[currentIdx];
+  const opts=document.querySelectorAll('.q-opt');
+  opts.forEach(o=>o.classList.add('answered'));
+  const isCorrect=idx===q.ans;
+  if(isCorrect){score++;opts[idx].classList.add('correct');}
+  else{opts[idx].classList.add('wrong');opts[q.ans].classList.add('correct');}
+  const fb=document.getElementById('q-feedback');
+  fb.textContent=(isCorrect?'✓ Correct! ':'✗ Incorrect. ')+q.exp;
+  fb.className='q-feedback show '+(isCorrect?'correct-fb':'wrong-fb');
+  document.getElementById('q-next').className='q-next show';
+}
+
+function nextQ(){
+  currentIdx++;
+  if(currentIdx>=currentBank.length){endQuiz();return;}
+  renderQ();
+}
+
+function endQuiz(){
+  document.getElementById('quiz-arena').style.display='none';
+  const ss=document.getElementById('score-screen');
+  ss.style.display='block';
+  const pct=Math.round(score/currentBank.length*100);
+  document.getElementById('score-num').textContent=score+'/'+currentBank.length;
+  const grade=pct>=90?'Excellent!':pct>=70?'Good Work':pct>=50?'Keep Practising':'Review the Topic';
+  document.getElementById('score-grade').textContent=grade;
+  const msgs={basics:'Solid grasp of atomic theory and bonding fundamentals.',thermo:'Great understanding of energy in chemical reactions.',organic:'Good knowledge of carbon chemistry.',acids:'Strong command of acids, bases, and redox reactions.',elements:'Excellent command of the periodic table.',industrial:'Good knowledge of industrial processes.'};
+  document.getElementById('score-msg').textContent=msgs[currentCat]||'Well done!';
+}
+function restartQuiz(){startQuiz(currentCat);}
+</script>
+<script src="js/compounds.js"></script>
+<script src="js/reactions.js"></script>
+<script src="js/knowledge-graph.js"></script>
+<script src="js/components.js"></script>
+<script src="js/interactions.js"></script>
+</body>
+</html>

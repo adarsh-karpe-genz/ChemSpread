@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en" data-page="home">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ChemSpread — Chemistry, Reimagined</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+
+
+<style>
+/* === DESIGN SYSTEM === */
+/* ═══════════════════════════════════════════════
+   CHEMSPREAD · DESIGN SYSTEM v2.0
+   Violet Scientific Editorial Theme
+   ═══════════════════════════════════════════════ */
+
+/* ── DESIGN TOKENS ──────────────────────────────── */
+:root {
+  /* Core palette */
+  --primary:   #2D1B69;
+  --secondary: #4B2E83;
+  --accent:    #9F7AEA;
+  --highlight: #5A4FCF;
+  --bg:        #F4F1FA;
+  --bg-alt:    #EDE9F5;
+  --bg-dark:   #1A1128;
+  --text:      #1E1E2E;
+  --text-muted:#6B6580;
+  --border:    rgba(45,27,105,0.12);
+  --border-med:rgba(45,27,105,0.22);
+  --border-strong:rgba(45,27,105,0.38);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(45,27,105,0.08);
+  --shadow-md: 0 4px 16px rgba(45,27,105,0.12);
+  --shadow-violet: 0 2px 20px rgba(90,79,207,0.18);
+
+  /* Typography */
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'IBM Plex Sans', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.4rem;
+  --space-sm: 0.8rem;
+  --space-md: 1.6rem;
+  --space-lg: 3.2rem;
+  --space-xl: 6rem;
+  --space-2xl:9rem;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --t-fast: 0.18s;
+  --t-med:  0.35s;
+  --t-slow: 0.6s;
+}
+
+/* ── RESET & BASE ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.75;
+  overflow-x: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── TYPOGRAPHY ──────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--primary);
+}
+h1 { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+h3 { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+h4 { font-size: 1.1rem; }
+
+p { color: var(--text); }
+em { font-family: var(--serif); font-style: italic; }
+strong { font-weight: 500; }
+a { color: inherit; text-decoration: none; }
+
+.label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.text-muted { color: var(--text-muted); }
+.body-lg { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 clamp(1.2rem, 5vw, 4rem);
+}
+.section { padding: var(--space-xl) 0; }
+.section + .section { border-top: 1px solid var(--border); }
+
+/* ── FORMULA WATERMARK ───────────────────────────── */
+.formula-bg {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden;
+  z-index: 0; opacity: 0.04;
+  font-family: var(--mono); font-size: clamp(0.7rem, 1vw, 0.9rem);
+  color: var(--primary); line-height: 3; word-break: break-all;
+  padding: 2rem; user-select: none;
+}
+
+/* ── SCROLL PROGRESS ─────────────────────────────── */
+#scroll-progress {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── NAVIGATION ──────────────────────────────────── */
+#main-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(244, 241, 250, 0.93);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow var(--t-med) var(--ease);
+}
+#main-nav.scrolled { box-shadow: var(--shadow-md); }
+
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.85rem clamp(1.2rem, 5vw, 4rem);
+  gap: 2rem;
+}
+.nav-logo {
+  font-family: var(--serif); font-size: 1.3rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; white-space: nowrap;
+}
+.nav-logo sup {
+  font-family: var(--mono); font-size: 0.48rem;
+  color: var(--accent); letter-spacing: 0.1em; vertical-align: super;
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  font-size: 0.8rem; font-weight: 400; letter-spacing: 0.04em;
+  color: var(--text-muted);
+  transition: color var(--t-fast);
+  position: relative; padding-bottom: 2px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1px;
+  background: var(--accent); transition: width var(--t-med) var(--ease);
+}
+.nav-links a:hover, .nav-links a.active { color: var(--primary); }
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+.nav-search {
+  display: flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border-med); padding: 0.35rem 0.8rem;
+  background: transparent; transition: border-color var(--t-fast);
+}
+.nav-search:focus-within { border-color: var(--accent); }
+.nav-search input {
+  border: none; background: transparent; outline: none;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text); width: 140px;
+}
+.nav-search input::placeholder { color: var(--text-muted); }
+.nav-search-icon { color: var(--text-muted); font-size: 0.75rem; }
+
+.nav-cta {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; border: 1px solid var(--primary);
+  color: var(--primary); padding: 0.45rem 1.1rem;
+  transition: background var(--t-fast), color var(--t-fast);
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--primary); color: var(--bg); }
+
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 4px;
+  cursor: pointer; padding: 4px;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--primary); transition: all var(--t-med);
+}
+
+/* ── BREADCRUMB ──────────────────────────────────── */
+.breadcrumb {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em;
+  color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.breadcrumb a { color: var(--accent); }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb-sep { opacity: 0.4; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer; transition: all var(--t-med) var(--ease);
+  border: none; background: none;
+}
+.btn-primary {
+  background: var(--primary); color: var(--bg);
+  padding: 0.75rem 1.8rem;
+}
+.btn-primary:hover {
+  background: var(--highlight);
+  box-shadow: 0 4px 16px rgba(90,79,207,0.3);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  border: 1px solid var(--border-strong); color: var(--primary);
+  padding: 0.75rem 1.8rem;
+}
+.btn-outline:hover {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(159,122,234,0.1);
+}
+.btn-ghost {
+  color: var(--text-muted); border-bottom: 1px solid var(--border-med);
+  padding-bottom: 2px; border-radius: 0;
+}
+.btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── SCIENTIFIC PANELS (replaces generic cards) ─── */
+.sci-panel {
+  border: 1px solid var(--border);
+  padding: 2rem 1.8rem;
+  background: var(--bg);
+  transition: border-color var(--t-med), box-shadow var(--t-med);
+  position: relative; overflow: hidden;
+}
+.sci-panel::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 2px; height: 0;
+  background: linear-gradient(180deg, var(--accent), var(--highlight));
+  transition: height var(--t-slow) var(--ease);
+}
+.sci-panel:hover::before { height: 100%; }
+.sci-panel:hover {
+  border-color: rgba(159,122,234,0.3);
+  box-shadow: var(--shadow-violet);
+}
+
+/* ── SECTION DIVIDERS ────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3; margin: var(--space-lg) 0;
+}
+.divider-molecule {
+  display: flex; align-items: center; gap: 1.2rem;
+  margin: var(--space-lg) 0; opacity: 0.3;
+}
+.divider-molecule::before, .divider-molecule::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent));
+}
+.divider-molecule::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.divider-molecule-icon {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--accent);
+}
+
+/* ── DID YOU KNOW BLOCKS ─────────────────────────── */
+.dyk-block {
+  border-left: 3px solid var(--accent);
+  padding: 1.2rem 1.6rem; background: rgba(159,122,234,0.06);
+  margin: 2rem 0; position: relative;
+}
+.dyk-block .dyk-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
+}
+.dyk-block p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* ── KEY INSIGHT ─────────────────────────────────── */
+.insight-block {
+  background: var(--primary); color: var(--bg);
+  padding: 2rem 2.5rem; position: relative; overflow: hidden;
+}
+.insight-block::before {
+  content: '"'; position: absolute; top: -1.5rem; left: 1.2rem;
+  font-family: var(--serif); font-size: 8rem; color: var(--accent);
+  opacity: 0.12; line-height: 1; pointer-events: none;
+}
+.insight-block .insight-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+}
+.insight-block .insight-text {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.25rem; line-height: 1.6; font-weight: 300;
+}
+
+/* ── QUICK SUMMARY PANEL ─────────────────────────── */
+.quick-summary {
+  border: 1px solid var(--border-med); padding: 1.6rem 2rem;
+  background: rgba(159,122,234,0.04); margin-bottom: 2.5rem;
+}
+.quick-summary-label {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;
+}
+.quick-summary-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border-med);
+}
+.quick-summary ul { list-style: none; }
+.quick-summary ul li {
+  font-size: 0.88rem; padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border); color: var(--text-muted);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+.quick-summary ul li::before {
+  content: '→'; font-family: var(--mono); font-size: 0.65rem;
+  color: var(--accent); flex-shrink: 0;
+}
+
+/* ── TOOLTIPS ────────────────────────────────────── */
+.tooltip {
+  position: relative; border-bottom: 1px dashed var(--accent);
+  cursor: help; display: inline-block;
+}
+.tooltip::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--primary); color: var(--bg);
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.04em;
+  white-space: nowrap; padding: 0.4rem 0.8rem;
+  pointer-events: none; opacity: 0;
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  z-index: 50;
+}
+.tooltip:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ── SCROLL REVEAL ───────────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity var(--t-slow) var(--ease-out),
+              transform var(--t-slow) var(--ease-out);
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── BACK TO TOP ─────────────────────────────────── */
+#back-to-top {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 100;
+  width: 42px; height: 42px;
+  background: var(--primary); color: var(--bg);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; opacity: 0; pointer-events: none;
+  transition: opacity var(--t-med), transform var(--t-med), background var(--t-fast);
+  transform: translateY(8px);
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; transform: none; }
+#back-to-top:hover { background: var(--highlight); transform: translateY(-2px); }
+
+/* ── FOOTER ──────────────────────────────────────── */
+#main-footer {
+  border-top: 1px solid var(--border-med);
+  padding: 4rem 0 2rem; background: var(--bg-alt);
+}
+.footer-grid {
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem;
+  margin-bottom: 2.5rem;
+}
+.footer-brand-name {
+  font-family: var(--serif); font-size: 1.2rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; display: block;
+  margin-bottom: 0.7rem;
+}
+.footer-brand p { font-size: 0.8rem; color: var(--text-muted); max-width: 26ch; }
+.footer-col h4 {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+}
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 0.5rem; }
+.footer-col ul a { font-size: 0.82rem; color: var(--text-muted); transition: color var(--t-fast); }
+.footer-col ul a:hover { color: var(--primary); }
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.5rem; border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted);
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+/* ── ATOMIC ORBIT ANIMATION ──────────────────────── */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(28px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(28px) rotate(-360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(20px) rotate(360deg); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(159,122,234,0); }
+  50% { box-shadow: 0 0 0 6px rgba(159,122,234,0.12); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links, .nav-search { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-links.open {
+    display: flex; flex-direction: column;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 1.5rem clamp(1.2rem, 5vw, 4rem);
+    gap: 1.2rem;
+  }
+  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* === INTERACTIONS === */
+/* ═══════════════════════════════════════════════════════
+   CHEMSPREAD · INTERACTIONS v3.0
+   Animation system, micro-interactions, particle canvas,
+   DYK engine, ripple, molecule hover, compound tags
+   ═══════════════════════════════════════════════════════ */
+
+/* ── ENHANCED REVEAL SYSTEM ────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.65s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.65s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* stagger children */
+.reveal-stagger > * {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity 0.55s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.55s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay: 0.13s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay: 0.21s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay: 0.29s; }
+.reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay: 0.37s; }
+.reveal-stagger.visible > *:nth-child(6) { opacity:1; transform:none; transition-delay: 0.45s; }
+
+/* ── PARTICLE CANVAS ───────────────────────────────── */
+#cs-particle-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; opacity: 0.35;
+}
+
+/* ── BUTTON UPGRADES ───────────────────────────────── */
+.btn-primary,
+.btn-outline,
+.btn,
+.calc-btn-run,
+.nav-cta {
+  position: relative; overflow: hidden;
+  transform: translateZ(0); /* GPU layer */
+}
+/* ripple */
+.ripple-wave {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0); animation: rippleAnim 0.55s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(3.5); opacity: 0; }
+}
+
+/* hover scale + glow */
+.btn-primary:hover,
+.calc-btn-run:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 22px rgba(90,79,207,0.32);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* ── SCI-PANEL HOVER LIFT ──────────────────────────── */
+.sci-panel {
+  transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1),
+              border-color 0.35s, box-shadow 0.35s;
+}
+.sci-panel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(90,79,207,0.14);
+}
+
+/* ── TEXT UNDERLINE GROW ───────────────────────────── */
+.ul-grow {
+  position: relative; display: inline-block;
+}
+.ul-grow::after {
+  content: ''; position: absolute; bottom: -1px; left: 0;
+  width: 0; height: 1px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1);
+}
+.ul-grow:hover::after { width: 100%; }
+
+/* ── DID-YOU-KNOW ENGINE ───────────────────────────── */
+.dyk-rotating {
+  position: relative; overflow: hidden;
+  min-height: 60px;
+}
+.dyk-rotating p {
+  position: absolute; inset: 0;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  padding-top: 2px;
+}
+.dyk-rotating p.dyk-active {
+  opacity: 1; transform: translateY(0);
+  position: relative;
+}
+.dyk-dots {
+  display: flex; gap: 5px; margin-top: 0.8rem;
+}
+.dyk-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border-strong); cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+}
+.dyk-dot.active { background: var(--accent); transform: scale(1.3); }
+
+/* ── MOLECULE CARD HOVER ───────────────────────────── */
+.mol-card {
+  transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1),
+              box-shadow 0.4s;
+}
+.mol-card:hover {
+  transform: rotate(1.5deg) translateY(-4px);
+  box-shadow: 0 10px 28px rgba(90,79,207,0.16);
+}
+.mol-card:hover .mol-bond { stroke: var(--accent); filter: drop-shadow(0 0 3px rgba(159,122,234,0.5)); }
+.mol-card:hover .mol-atom { fill: var(--highlight); }
+
+/* ── COMPOUND TAGS ─────────────────────────────────── */
+.tag-system { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.2rem 0; }
+.chem-tag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.28rem 0.65rem;
+  border: 1px solid var(--border-med); color: var(--text-muted);
+  cursor: pointer; transition: all 0.22s;
+  user-select: none;
+}
+.chem-tag:hover { border-color: var(--accent); color: var(--accent); }
+.chem-tag.tag-active {
+  background: var(--primary); color: var(--bg); border-color: var(--primary);
+}
+.chem-tag[data-tag="organic"]    { --tc: #9F7AEA; }
+.chem-tag[data-tag="inorganic"]  { --tc: #5A4FCF; }
+.chem-tag[data-tag="industrial"] { --tc: #B87333; }
+.chem-tag[data-tag="biological"] { --tc: #27AE60; }
+.chem-tag.tag-active { background: var(--tc,var(--primary)); border-color: var(--tc,var(--primary)); }
+
+/* ── ELEMENT COMPARISON PANEL ──────────────────────── */
+#compare-panel {
+  display: none; margin-top: 2rem;
+  border: 1px solid var(--border-med);
+  animation: fadeSlideUp 0.35s ease;
+  overflow: hidden;
+}
+#compare-panel.open { display: block; }
+
+.compare-header {
+  background: var(--primary); color: var(--bg);
+  padding: 0.9rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+}
+.compare-close {
+  cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+  background: none; border: none; color: var(--bg); font-size: 1rem;
+}
+.compare-close:hover { opacity: 1; }
+
+.compare-body {
+  display: grid; grid-template-columns: 1fr 60px 1fr;
+  gap: 0; background: var(--bg);
+}
+.compare-col {
+  padding: 1.8rem;
+}
+.compare-col:first-child { border-right: 1px solid var(--border); }
+.compare-col:last-child  { border-left: 1px solid var(--border); }
+.compare-vs {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 1.2rem; color: var(--text-muted);
+  font-style: italic;
+}
+.compare-symbol {
+  font-family: var(--serif); font-size: 3.5rem; font-weight: 700;
+  color: var(--primary); line-height: 1; margin-bottom: 0.2rem;
+}
+.compare-name {
+  font-family: var(--serif); font-size: 1.2rem; color: var(--primary); margin-bottom: 1rem;
+}
+.compare-row {
+  padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.83rem;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-key { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
+.compare-val { font-family: var(--serif); font-size: 1rem; color: var(--text); }
+.compare-bar-wrap { margin-top: 0.3rem; height: 3px; background: var(--border); }
+.compare-bar {
+  height: 100%; background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.8s cubic-bezier(0.25,0.8,0.25,1); width: 0;
+}
+
+/* compare select buttons on periodic table */
+.el-compare-btn {
+  position: absolute; top: 2px; right: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; z-index: 5;
+  transition: background 0.18s, border-color 0.18s;
+  display: none;
+}
+.el:hover .el-compare-btn { display: block; }
+.el-compare-btn:hover { background: var(--accent); border-color: var(--accent); }
+.el.compare-selected { background: rgba(159,122,234,0.12) !important; border-color: var(--accent) !important; }
+.el.compare-selected .el-compare-btn { display: block; background: var(--accent); border-color: var(--accent); }
+
+/* ── TREND CHARTS SECTION ──────────────────────────── */
+#trend-charts {
+  padding: 3rem 0 4rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.trend-tabs {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  margin-bottom: 2rem; width: fit-content;
+}
+.trend-tab {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.6rem 1.2rem;
+  cursor: pointer; border-right: 1px solid var(--border);
+  color: var(--text-muted); transition: all 0.2s;
+  background: var(--bg); border-radius: 0;
+}
+.trend-tab:last-child { border-right: none; }
+.trend-tab.active { background: var(--primary); color: var(--bg); }
+.trend-tab:hover:not(.active) { color: var(--primary); background: rgba(159,122,234,0.06); }
+
+.trend-chart-wrap {
+  position: relative; height: 320px;
+  border: 1px solid var(--border); background: var(--bg); padding: 1.5rem;
+}
+.trend-chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* ── REACTION FILTER ───────────────────────────────── */
+.reaction-filter { margin: 1.5rem 0; }
+.filter-group {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem;
+  align-items: center;
+}
+.filter-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase; min-width: 60px;
+}
+
+/* reaction cards */
+.reaction-card {
+  border: 1px solid var(--border); padding: 1.4rem 1.6rem; margin-bottom: 1px;
+  transition: all 0.3s ease; background: var(--bg);
+  position: relative; overflow: hidden;
+}
+.reaction-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform 0.35s ease;
+}
+.reaction-card:hover::before { transform: scaleY(1); }
+.reaction-card.hidden { display: none; }
+.reaction-card:hover { border-color: rgba(159,122,234,0.3); transform: translateX(4px); }
+
+.rc-formula { font-family: var(--mono); font-size: 0.85rem; color: var(--primary); margin-bottom: 0.4rem; }
+.rc-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.rc-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.rc-tag {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.18rem 0.5rem;
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+
+/* ── AMBIENT SOUND TOGGLE ──────────────────────────── */
+#sound-toggle {
+  position: fixed; bottom: 2rem; left: 2rem; z-index: 100;
+  width: 38px; height: 38px;
+  background: var(--bg-alt); border: 1px solid var(--border-med);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--text-muted);
+  transition: all 0.22s; border-radius: 50%;
+  opacity: 0.7;
+}
+#sound-toggle:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+#sound-toggle.sound-on { background: var(--primary); color: var(--bg); border-color: var(--primary); opacity: 1; }
+
+/* ── ELEMENT HOVER PREVIEW ─────────────────────────── */
+#el-hover-preview {
+  position: fixed; z-index: 500; pointer-events: none;
+  background: var(--primary); color: var(--bg);
+  padding: 0.8rem 1.1rem; border: 1px solid rgba(159,122,234,0.3);
+  max-width: 200px; min-width: 150px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.18s, transform 0.18s;
+  font-family: var(--mono);
+}
+#el-hover-preview.visible { opacity: 1; transform: translateY(0); }
+#el-hover-preview .ph-sym { font-family: var(--serif); font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1; }
+#el-hover-preview .ph-name { font-size: 0.75rem; margin: 0.2rem 0; }
+#el-hover-preview .ph-num { font-size: 0.6rem; opacity: 0.6; letter-spacing: 0.08em; }
+#el-hover-preview .ph-desc { font-size: 0.6rem; opacity: 0.7; margin-top: 0.4rem; line-height: 1.5; }
+
+/* ── SCROLL PROGRESS (thicker, brighter) ───────────── */
+#scroll-progress {
+  height: 3px !important;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--highlight)) !important;
+  box-shadow: 0 0 8px rgba(159,122,234,0.4);
+}
+
+/* ── BACK TO TOP (circular) ────────────────────────── */
+#back-to-top {
+  border-radius: 50% !important;
+  width: 44px !important; height: 44px !important;
+  box-shadow: var(--shadow-violet);
+  transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1) !important;
+}
+#back-to-top:hover { transform: translateY(-3px) scale(1.08) !important; }
+
+/* ── MOBILE REDUCTION ──────────────────────────────── */
+@media (max-width: 768px) {
+  #cs-particle-canvas { display: none; }
+  .sci-panel:hover { transform: none; }
+  .mol-card:hover { transform: none; }
+  .compare-body { grid-template-columns: 1fr; }
+  .compare-vs { display: none; }
+}
+
+/* ── KEYFRAMES ─────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
+
+</style>
+<style>
+body { padding-top: 58px; }
+
+/* HERO */
+#hero {
+  min-height: calc(100vh - 58px);
+  display: flex; align-items: center;
+  position: relative; overflow: hidden;
+  padding: 4rem 0 3rem;
+}
+.hero-inner {
+  display: grid; grid-template-columns: 1fr 380px;
+  gap: 5rem; align-items: center; position: relative; z-index: 1;
+}
+.hero-eyebrow { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.6rem; }
+.hero-eyebrow-line { width: 28px; height: 1px; background: var(--accent); }
+.hero-title { margin-bottom: 1.4rem; }
+.hero-title em { color: var(--accent); font-size: 0.85em; }
+.hero-desc { font-size: 1.05rem; color: var(--text-muted); max-width: 44ch; margin-bottom: 2.2rem; line-height: 1.8; }
+.hero-actions { display: flex; align-items: center; gap: 2.5rem; margin-bottom: 3.5rem; }
+.hero-stats { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--border); padding-top: 2rem; }
+.stat-num { font-family: var(--serif); font-size: 2.2rem; font-weight: 700; color: var(--highlight); }
+.stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem; }
+.stat-item + .stat-item { border-left: 1px solid var(--border); padding-left: 1.5rem; }
+
+/* Atom illustration */
+.hero-atom {
+  position: relative; width: 100%; aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.atom-nucleus {
+  width: 52px; height: 52px; background: var(--primary); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 1rem; color: var(--bg); font-weight: 700;
+  z-index: 5; position: relative;
+  animation: pulse-glow 3s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(159,122,234,0);
+}
+.orbit-ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(90,79,207,0.22);
+}
+.orbit-ring-1 { width: 150px; height: 90px; }
+.orbit-ring-2 { width: 210px; height: 120px; transform: rotate(60deg); }
+.orbit-ring-3 { width: 270px; height: 150px; transform: rotate(120deg); }
+.electron {
+  position: absolute; width: 8px; height: 8px;
+  background: var(--accent); border-radius: 50%;
+  margin: -4px 0 0 -4px;
+}
+.formula-float {
+  position: absolute; font-family: var(--mono); font-size: 0.65rem;
+  color: var(--primary); opacity: 0.3; letter-spacing: 0.05em;
+}
+
+/* TOPICS */
+#topics { padding: var(--space-xl) 0; }
+.topic-block {
+  display: grid; grid-template-columns: 52px 1fr 80px; gap: 2rem;
+  align-items: start; border-top: 1px solid var(--border);
+  padding: 2.2rem 0; position: relative; cursor: pointer;
+  text-decoration: none; color: inherit;
+}
+.topic-block::after {
+  content: ''; position: absolute; bottom: 0; left: 0;
+  width: 0; height: 1px;
+  background: linear-gradient(90deg, var(--accent), var(--highlight));
+  transition: width var(--t-slow) var(--ease);
+}
+.topic-block:hover::after { width: 100%; }
+.topic-block:last-child { border-bottom: 1px solid var(--border); }
+.topic-num { font-family: var(--mono); font-size: 0.65rem; color: var(--text-muted); padding-top: 0.3rem; letter-spacing: 0.1em; }
+.topic-content h3 { margin-bottom: 0.35rem; transition: color var(--t-fast); }
+.topic-block:hover h3 { color: var(--highlight); }
+.topic-content p { font-size: 0.87rem; color: var(--text-muted); max-width: 56ch; }
+.topic-sym { font-family: var(--mono); font-size: 1rem; color: var(--border-strong); text-align: right; padding-top: 0.3rem; letter-spacing: 0.15em; transition: color var(--t-med); }
+.topic-block:hover .topic-sym { color: var(--accent); }
+
+/* FEATURES */
+#features { padding: var(--space-xl) 0; background: var(--bg-alt); }
+.feature-2col { display: grid; grid-template-columns: 1.3fr 1fr; gap: 5rem; align-items: start; margin-bottom: 4rem; }
+.feature-3col { display: grid; grid-template-columns: 2fr 1.2fr 1fr; }
+.feature-col { padding: 0 2.5rem; }
+.feature-col:first-child { padding-left: 0; }
+.feature-col + .feature-col { border-left: 1px solid var(--border); }
+.feature-col h3 { margin-bottom: 0.6rem; font-size: 1.25rem; }
+.feature-col p { font-size: 0.87rem; color: var(--text-muted); margin-bottom: 1rem; }
+.link-arrow { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); border-bottom: 1px solid transparent; padding-bottom: 1px; transition: border-color var(--t-fast), color var(--t-fast); }
+.link-arrow:hover { border-color: var(--accent); color: var(--highlight); }
+
+/* CHEMISTS */
+#chemists-strip { padding: var(--space-xl) 0; }
+.chemists-grid { display: grid; grid-template-columns: repeat(4,1fr); border: 1px solid var(--border); }
+.chemist-card { padding: 1.8rem 1.6rem; border-right: 1px solid var(--border); position: relative; overflow: hidden; transition: background var(--t-med); }
+.chemist-card:last-child { border-right: none; }
+.chemist-card::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), var(--highlight)); transform: scaleX(0); transform-origin: left; transition: transform var(--t-slow) var(--ease); }
+.chemist-card:hover::after { transform: scaleX(1); }
+.chemist-card:hover { background: rgba(159,122,234,0.04); }
+.chemist-era { font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.6rem; }
+.chemist-name { font-family: var(--serif); font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 0.3rem; }
+.chemist-known { font-family: var(--mono); font-size: 0.62rem; color: var(--accent); letter-spacing: 0.06em; margin-bottom: 0.8rem; }
+.chemist-bio { font-size: 0.8rem; color: var(--text-muted); line-height: 1.65; }
+
+@media (max-width: 960px) {
+  .hero-inner { grid-template-columns: 1fr; }
+  .hero-atom { display: none; }
+  .feature-2col { grid-template-columns: 1fr; gap: 2.5rem; }
+  .feature-3col { grid-template-columns: 1fr; }
+  .feature-col { padding: 0; }
+  .feature-col + .feature-col { border-left: none; border-top: 1px solid var(--border); margin-top: 2rem; padding-top: 2rem; }
+  .chemists-grid { grid-template-columns: 1fr 1fr; }
+  .chemist-card:nth-child(2) { border-right: none; }
+  .chemist-card:nth-child(3), .chemist-card:last-child { border-top: 1px solid var(--border); }
+  .chemist-card:nth-child(3) { border-right: 1px solid var(--border); }
+  .topic-block { grid-template-columns: 42px 1fr; }
+  .topic-sym { display: none; }
+}
+@media (max-width: 600px) {
+  .chemists-grid { grid-template-columns: 1fr; }
+  .chemist-card { border-right: none !important; border-bottom: 1px solid var(--border); }
+  .hero-stats { grid-template-columns: 1fr; }
+  .stat-item + .stat-item { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- BOOT SCREEN — shows only once per session -->
+<div id="bootScreen" style="position:fixed;inset:0;background:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .7s ease">
+  <div style="text-align:center">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:4rem;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:.4rem">Chem<em style="color:#9F7AEA">Spread</em><sup style="font-family:'JetBrains Mono',monospace;font-size:.5rem;color:rgba(159,122,234,.7);vertical-align:super;letter-spacing:.1em">β</sup></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.2em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:3rem">Chemistry · Education · Exploration</div>
+    <div style="position:relative;width:80px;height:80px;margin:0 auto 2.5rem">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div style="width:18px;height:18px;background:#9F7AEA;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:.65rem;color:#fff;font-weight:700">C</div>
+      </div>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div style="width:72px;height:44px;border-radius:50%;border:1px solid rgba(159,122,234,.4);animation:bootOrbit 2.8s linear infinite"></div>
+      </div>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div style="width:56px;height:36px;border-radius:50%;border:1px solid rgba(159,122,234,.25);animation:bootOrbit 4s linear infinite reverse;transform:rotate(65deg)"></div>
+      </div>
+    </div>
+    <div style="width:180px;height:2px;background:rgba(255,255,255,.12);margin:0 auto">
+      <div id="idx-boot-bar" style="height:100%;background:linear-gradient(90deg,#5A4FCF,#9F7AEA);width:0;transition:width .04s linear"></div>
+    </div>
+  </div>
+</div>
+<style>@keyframes bootOrbit { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }</style>
+<script>
+(function(){
+  const screen = document.getElementById('bootScreen');
+  const bar    = document.getElementById('idx-boot-bar');
+  if (!sessionStorage.getItem('cs_visited')) {
+    sessionStorage.setItem('cs_visited', '1');
+    let p = 0;
+    const intv = setInterval(() => {
+      p = Math.min(p + 2.5, 100);
+      bar.style.width = p + '%';
+      if (p >= 100) {
+        clearInterval(intv);
+        setTimeout(() => {
+          screen.style.opacity = '0';
+          setTimeout(() => screen.style.display = 'none', 720);
+        }, 300);
+      }
+    }, 40);
+  } else {
+    screen.style.display = 'none';
+  }
+})();
+</script>
+
+
+<section id="hero">
+  <div class="formula-bg" aria-hidden="true">
+    H₂O + CO₂ → H₂CO₃ · NaCl · CH₄ · C₆H₁₂O₆ · NH₃ · H₂SO₄ · Fe₂O₃ ·
+    2H₂ + O₂ → 2H₂O · C₆H₆ · ΔG = ΔH − TΔS · PV = nRT · pH = −log[H⁺] ·
+    E = hν · Na₂CO₃ · CuSO₄ · AgNO₃ · Mg(OH)₂ · Al₂O₃ · C₂H₅OH · 6.022×10²³ ·
+  </div>
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-eyebrow">
+          <div class="hero-eyebrow-line"></div>
+          <span class="label">Science · Education · Exploration</span>
+        </div>
+        <h1 class="hero-title">Chemistry,<br/><em>as it should<br/>be taught.</em></h1>
+        <p class="hero-desc">A curated reference for Class 8–12. Every element, every reaction, every concept — presented with scientific rigour and the clarity of a great teacher.</p>
+        <div class="hero-actions">
+          <a href="topics.html" class="btn btn-primary">Begin Exploring</a>
+          <a href="learning-path.html" class="btn btn-outline" style="font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border-strong);color:var(--primary);padding:.72rem 1.7rem;display:inline-flex;align-items:center;gap:.5rem;transition:all .3s">📚 Learning Path</a>
+          <a href="bonding.html" class="btn btn-ghost">⚡ Bonding Visualizer →</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item"><div class="stat-num">118</div><div class="stat-label">Elements</div></div>
+          <div class="stat-item"><div class="stat-num">20+</div><div class="stat-label">Calculators</div></div>
+          <div class="stat-item"><div class="stat-num">8–12</div><div class="stat-label">Class Coverage</div></div>
+        </div>
+      </div>
+
+      <!-- Atomic illustration -->
+      <div class="hero-atom reveal">
+        <div class="orbit-ring orbit-ring-1"></div>
+        <div class="orbit-ring orbit-ring-2"></div>
+        <div class="orbit-ring orbit-ring-3"></div>
+        <div class="atom-nucleus">C</div>
+
+        <!-- Orbit wrappers: we animate a container that rotates, electron sits on edge -->
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+          <div style="width:150px;height:90px;border-radius:50%;position:relative;animation:spinOrbit 4s linear infinite">
+            <div class="electron" style="top:50%;left:100%"></div>
+          </div>
+        </div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+          <div style="width:210px;height:120px;border-radius:50%;position:relative;transform:rotate(60deg);animation:spinOrbit 5.5s linear infinite reverse">
+            <div class="electron" style="top:50%;left:0%"></div>
+          </div>
+        </div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+          <div style="width:270px;height:150px;border-radius:50%;position:relative;transform:rotate(120deg);animation:spinOrbit 7s linear infinite">
+            <div class="electron" style="top:0%;left:50%"></div>
+          </div>
+        </div>
+
+        <span class="formula-float" style="top:10%;left:65%">CH₄</span>
+        <span class="formula-float" style="bottom:14%;right:6%">H₂O</span>
+        <span class="formula-float" style="bottom:8%;left:5%">CO₂</span>
+        <span class="formula-float" style="top:18%;left:2%">NaCl</span>
+        <span class="formula-float" style="top:58%;right:2%">NH₃</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="topics">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:3rem">
+      <span class="label">What you'll learn</span>
+      <h2 style="margin-top:0.4rem;color:var(--primary)">Core Topics</h2>
+      <p class="body-lg" style="margin-top:0.5rem">Structured like a great textbook. Each topic builds on the last.</p>
+    </div>
+    <a href="topics.html#matter"  class="topic-block reveal" style="transition-delay:.05s"><span class="topic-num">01</span><div class="topic-content"><h3>Matter &amp; Its States</h3><p>Solids, liquids, gases, plasma. Phase diagrams, intermolecular forces, and kinetic molecular theory.</p></div><span class="topic-sym">H₂O</span></a>
+    <a href="topics.html#atomic"  class="topic-block reveal" style="transition-delay:.10s"><span class="topic-num">02</span><div class="topic-content"><h3>Atomic Structure</h3><p>From Dalton's billiard ball to quantum orbitals. Electron configuration and the Aufbau principle.</p></div><span class="topic-sym">e⁻</span></a>
+    <a href="topics.html#bonding" class="topic-block reveal" style="transition-delay:.15s"><span class="topic-num">03</span><div class="topic-content"><h3>Chemical Bonding</h3><p>Ionic, covalent, metallic. VSEPR theory, hybridisation, and molecular geometry explained.</p></div><span class="topic-sym">σπ</span></a>
+    <a href="topics.html#acids"   class="topic-block reveal" style="transition-delay:.20s"><span class="topic-num">04</span><div class="topic-content"><h3>Acids, Bases &amp; Salts</h3><p>pH scale, neutralisation, buffers, and titration — the chemistry of everyday substances.</p></div><span class="topic-sym">pH</span></a>
+    <a href="topics.html#thermo"  class="topic-block reveal" style="transition-delay:.25s"><span class="topic-num">05</span><div class="topic-content"><h3>Thermochemistry</h3><p>Energy in reactions. Enthalpy, Hess's law, bond enthalpies, and Gibbs free energy.</p></div><span class="topic-sym">ΔH</span></a>
+    <a href="topics.html#organic" class="topic-block reveal" style="transition-delay:.30s"><span class="topic-num">06</span><div class="topic-content"><h3>Organic Chemistry</h3><p>Carbon compounds, functional groups, IUPAC naming, and reaction mechanisms.</p></div><span class="topic-sym">C₆</span></a>
+  </div>
+</section>
+
+<section id="features">
+  <div class="container">
+    <div class="feature-2col">
+      <div class="reveal">
+        <span class="label">Editorial</span>
+        <h2 style="margin-top:0.4rem">Chemistry is not memorisation.<br/>It is understanding.</h2>
+        <p class="body-lg" style="margin-top:1.2rem">Every concept here is explained from first principles. We help you understand <em>why</em> formulas exist — not just what they are. From Jabir ibn Hayyan to Linus Pauling, chemistry is the history of human curiosity.</p>
+        <div class="dyk-block" style="margin-top:2rem">
+          <div class="dyk-label">Did you know?</div>
+          <p>A single mole of sand grains would cover Earth several metres deep. Yet chemists work with moles of substance in a single test tube.</p>
+        </div>
+      </div>
+      <div>
+        <div class="insight-block reveal" style="transition-delay:0.1s">
+          <div class="insight-label">Key Insight</div>
+          <div class="insight-text">"Every substance in the universe is made of the same 118 building blocks, arranged in astonishingly diverse ways."</div>
+        </div>
+        <blockquote style="border-left:2px solid var(--accent);padding-left:1.4rem;margin-top:2rem" class="reveal" style="transition-delay:.15s">
+          <p style="font-family:var(--serif);font-style:italic;font-size:1.15rem;line-height:1.55;color:var(--primary)">"Chemistry begins in the stars. The science of chemistry is really the science of everything."</p>
+          <footer style="font-family:var(--mono);font-size:0.62rem;color:var(--text-muted);margin-top:0.6rem">— Peter Atkins, Physical Chemistry</footer>
+        </blockquote>
+      </div>
+    </div>
+
+    <div class="divider-molecule reveal"><span class="divider-molecule-icon">⬡ C₆H₆ ⬡</span></div>
+
+    <div class="feature-3col reveal" style="transition-delay:0.1s">
+      <div class="feature-col">
+        <span class="label" style="display:block;margin-bottom:0.5rem">Deep Dive</span>
+        <h3>Mole Concept &amp; Stoichiometry</h3>
+        <p>Avogadro's number bridges the atomic world and the macroscopic. 1 mol = <span class="tooltip" data-tip="6.022 × 10²³ particles">6.022 × 10²³</span> — makes chemistry calculable at lab scale.</p>
+        <p>Stoichiometry lets you predict exactly how much product forms from given reactants, with precision.</p>
+        <a href="topics.html#moles" class="link-arrow">Read full chapter →</a>
+      </div>
+      <div class="feature-col">
+        <span class="label" style="display:block;margin-bottom:0.5rem">Anomaly</span>
+        <h3>Water is genuinely unusual</h3>
+        <p>Most substances contract when they freeze. <span class="tooltip" data-tip="H₂O expands ~9% on freezing">Water expands</span> — which is why ice floats and life exists on Earth. Hydrogen bonding creates space.</p>
+        <a href="topics.html#matter" class="link-arrow">Explore anomalies →</a>
+      </div>
+      <div class="feature-col">
+        <span class="label" style="display:block;margin-bottom:0.5rem">Quick fact</span>
+        <h3>Fluorine wins</h3>
+        <p><span class="tooltip" data-tip="Electronegativity 3.98 on Pauling scale">Fluorine</span> pulls electron density more strongly than any other element. This explains why HF is a surprisingly weak acid.</p>
+        <a href="periodic-table.html" class="link-arrow">View table →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="chemists-strip">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:2.5rem">
+      <span class="label">The people behind the science</span>
+      <h2 style="margin-top:0.4rem">Notable Chemists</h2>
+    </div>
+    <div class="chemists-grid reveal reveal-stagger" style="transition-delay:0.1s">
+      <div class="chemist-card"><div class="chemist-era">1743 – 1794</div><div class="chemist-name">Antoine Lavoisier</div><div class="chemist-known">Father of Modern Chemistry</div><p class="chemist-bio">Established conservation of mass, named oxygen and hydrogen. His Traité Élémentaire de Chimie was the first modern chemistry textbook.</p></div>
+      <div class="chemist-card"><div class="chemist-era">1834 – 1907</div><div class="chemist-name">Dmitri Mendeleev</div><div class="chemist-known">Periodic Table Creator</div><p class="chemist-bio">Arranged elements by atomic weight and predicted properties of undiscovered elements. His gaps in the table were validated over decades.</p></div>
+      <div class="chemist-card"><div class="chemist-era">1867 – 1934</div><div class="chemist-name">Marie Curie</div><div class="chemist-known">Radioactivity Pioneer</div><p class="chemist-bio">The only person to win Nobel Prizes in two sciences. Discovered polonium and radium; coined the term "radioactivity."</p></div>
+      <div class="chemist-card"><div class="chemist-era">1901 – 1994</div><div class="chemist-name">Linus Pauling</div><div class="chemist-known">Chemical Bonding Theory</div><p class="chemist-bio">Introduced electronegativity, described chemical bonding quantum mechanically, and won two unshared Nobel Prizes.</p></div>
+    </div>
+    <div style="text-align:right;margin-top:1.5rem"><a href="chemists.html" class="link-arrow">View all chemists →</a></div>
+  </div>
+</section>
+
+<style>
+@keyframes spinOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+
+
+<!-- FEATURED LEARNING TOOLS -->
+<section style="padding:3rem 0;border-top:1px solid var(--border);background:var(--bg-alt)">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:1.5rem">
+      <span class="label">Interactive Features</span>
+      <h2 style="margin-top:.3rem">Learning Tools</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--border)" class="reveal reveal-stagger">
+      <a href="bonding.html" style="padding:1.8rem;background:var(--bg);border-right:1px solid var(--border);text-decoration:none;display:block;position:relative;overflow:hidden;transition:background .22s" onmouseover="this.style.background='rgba(159,122,234,.05)'" onmouseout="this.style.background='var(--bg)'">
+        <div style="font-size:2rem;margin-bottom:.7rem">⚡</div>
+        <div style="font-family:var(--serif);font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:.4rem">Bonding Visualizer</div>
+        <p style="font-size:.82rem;color:var(--text-muted);line-height:1.65">Watch ionic, covalent, and metallic bonding happen in real-time. Understand WHY electrons transfer or share — the site's hero interactive feature.</p>
+        <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:.8rem">→ Open Visualizer</div>
+      </a>
+      <a href="learning-path.html" style="padding:1.8rem;background:var(--bg);border-right:1px solid var(--border);text-decoration:none;display:block;position:relative;overflow:hidden;transition:background .22s" onmouseover="this.style.background='rgba(159,122,234,.05)'" onmouseout="this.style.background='var(--bg)'">
+        <div style="font-size:2rem;margin-bottom:.7rem">📚</div>
+        <div style="font-family:var(--serif);font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:.4rem">Guided Learning Paths</div>
+        <p style="font-size:.82rem;color:var(--text-muted);line-height:1.65">Three structured paths — Foundation, Core Chemistry, Advanced — with progress tracking. Go from zero to exam-ready in the right order.</p>
+        <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:.8rem">→ Choose Your Path</div>
+      </a>
+      <a href="periodic-table.html" style="padding:1.8rem;background:var(--bg);text-decoration:none;display:block;position:relative;overflow:hidden;transition:background .22s" onmouseover="this.style.background='rgba(159,122,234,.05)'" onmouseout="this.style.background='var(--bg)'">
+        <div style="font-size:2rem;margin-bottom:.7rem">⚛</div>
+        <div style="font-family:var(--serif);font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:.4rem">Interactive Periodic Table</div>
+        <p style="font-size:.82rem;color:var(--text-muted);line-height:1.65">All 118 elements with full data — click for details, filter by category, compare two elements side-by-side, and visualise periodic trends.</p>
+        <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:.8rem">→ Explore Elements</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- KEY REACTIONS TEASER -->
+<section style="padding:var(--space-xl) 0;border-top:1px solid var(--border);background:var(--bg-alt)">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:2.5rem">
+      <span class="label">Essential Chemistry</span>
+      <h2 style="margin-top:0.4rem">Key Reactions to Know</h2>
+      <p class="body-lg" style="margin-top:0.5rem;max-width:54ch">The reactions that shaped chemistry — from the laboratory to the industrial scale.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;border:1px solid var(--border)" class="reveal reveal-stagger" style="transition-delay:0.1s">
+      <div style="padding:1.6rem 1.8rem;background:var(--bg);border-right:1px solid var(--border);position:relative;overflow:hidden;transition:all 0.3s">
+        <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--accent);text-transform:uppercase;margin-bottom:0.5rem">Combustion</div>
+        <div style="font-family:var(--mono);font-size:0.9rem;color:var(--primary);margin-bottom:0.5rem">CH₄ + 2O₂ → CO₂ + 2H₂O</div>
+        <p style="font-size:0.82rem;color:var(--text-muted)">The complete combustion of methane — the primary component of natural gas — releasing 890 kJ/mol.</p>
+      </div>
+      <div style="padding:1.6rem 1.8rem;background:var(--bg);position:relative;overflow:hidden;transition:all 0.3s">
+        <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--accent);text-transform:uppercase;margin-bottom:0.5rem">Neutralisation</div>
+        <div style="font-family:var(--mono);font-size:0.9rem;color:var(--primary);margin-bottom:0.5rem">HCl + NaOH → NaCl + H₂O</div>
+        <p style="font-size:0.82rem;color:var(--text-muted)">A strong acid reacts with a strong base to form a neutral salt and water. ΔH ≈ −57 kJ/mol.</p>
+      </div>
+      <div style="padding:1.6rem 1.8rem;background:var(--bg);border-top:1px solid var(--border);border-right:1px solid var(--border);position:relative;overflow:hidden;transition:all 0.3s">
+        <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--accent);text-transform:uppercase;margin-bottom:0.5rem">Photosynthesis</div>
+        <div style="font-family:var(--mono);font-size:0.9rem;color:var(--primary);margin-bottom:0.5rem">6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂</div>
+        <p style="font-size:0.82rem;color:var(--text-muted)">The endothermic conversion of carbon dioxide and water into glucose, driven by light energy in chlorophyll.</p>
+      </div>
+      <div style="padding:1.6rem 1.8rem;background:var(--bg);border-top:1px solid var(--border);position:relative;overflow:hidden;transition:all 0.3s">
+        <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--accent);text-transform:uppercase;margin-bottom:0.5rem">Haber Process</div>
+        <div style="font-family:var(--mono);font-size:0.9rem;color:var(--primary);margin-bottom:0.5rem">N₂ + 3H₂ ⇌ 2NH₃</div>
+        <p style="font-size:0.82rem;color:var(--text-muted)">The industrial synthesis of ammonia at 450°C and 200 atm. Feeds approximately half the global population today.</p>
+      </div>
+    </div>
+
+    <div style="text-align:right;margin-top:1.5rem">
+      <a href="topics.html" class="link-arrow" style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);border-bottom:1px solid transparent;padding-bottom:1px;transition:border-color 0.18s">Explore all reactions →</a>
+    </div>
+  </div>
+</section>
+
+<!-- INTERACTIVE CALCULATOR TEASER -->
+<section style="padding:var(--space-xl) 0;border-top:1px solid var(--border)">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center">
+      <div class="reveal">
+        <span class="label">Try it now</span>
+        <h2 style="margin-top:0.4rem">Quick Mole Calculator</h2>
+        <p class="body-lg" style="margin-top:0.8rem">Enter mass and molar mass to instantly calculate moles. One of 8 calculators available in our Tools section.</p>
+        <a href="calculators.html" class="btn btn-outline" style="margin-top:1.5rem;display:inline-flex">View all Calculators →</a>
+      </div>
+      <div class="reveal" style="transition-delay:0.1s">
+        <div style="border:1px solid var(--border-med);padding:2rem;background:var(--bg-alt)">
+          <div style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);letter-spacing:0.1em;margin-bottom:1.2rem;padding:0.5rem 0.8rem;background:rgba(90,79,207,0.06);border-left:2px solid var(--accent);display:inline-block">n = m / M</div>
+          <div style="margin-bottom:1rem">
+            <label style="display:block;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.4rem">Mass (g)</label>
+            <input id="home-mass" type="number" placeholder="e.g. 36" style="width:100%;border:1px solid var(--border-med);background:var(--bg);padding:0.6rem 0.8rem;font-family:var(--mono);font-size:0.85rem;color:var(--text);outline:none;" oninput="homeCalc()" />
+          </div>
+          <div style="margin-bottom:1rem">
+            <label style="display:block;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.4rem">Molar Mass (g/mol)</label>
+            <input id="home-molar" type="number" placeholder="e.g. 18 for H₂O" style="width:100%;border:1px solid var(--border-med);background:var(--bg);padding:0.6rem 0.8rem;font-family:var(--mono);font-size:0.85rem;color:var(--text);outline:none;" oninput="homeCalc()" />
+          </div>
+          <div id="home-result" style="padding:0.8rem 1rem;border:1px solid var(--border);background:var(--bg);display:none">
+            <div style="font-family:var(--mono);font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)">Moles (n)</div>
+            <div id="home-result-val" style="font-family:var(--serif);font-size:2rem;color:var(--highlight);margin-top:0.2rem"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+function homeCalc() {
+  const m = parseFloat(document.getElementById('home-mass').value);
+  const M = parseFloat(document.getElementById('home-molar').value);
+  const res = document.getElementById('home-result');
+  const val = document.getElementById('home-result-val');
+  if (m > 0 && M > 0) {
+    res.style.display = 'block';
+    val.textContent = (m / M).toFixed(5) + ' mol';
+  } else {
+    res.style.display = 'none';
+  }
+}
+</script>
+<script src="js/compounds.js"></script>
+<script src="js/reactions.js"></script>
+<script src="js/knowledge-graph.js"></script>
+<script src="js/components.js"></script>
+<script src="js/interactions.js"></script>
+</body>
+</html>

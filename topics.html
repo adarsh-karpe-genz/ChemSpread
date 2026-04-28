@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en" data-page="topics">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Topics — ChemSpread</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+
+
+<style>
+/* === DESIGN SYSTEM === */
+/* ═══════════════════════════════════════════════
+   CHEMSPREAD · DESIGN SYSTEM v2.0
+   Violet Scientific Editorial Theme
+   ═══════════════════════════════════════════════ */
+
+/* ── DESIGN TOKENS ──────────────────────────────── */
+:root {
+  /* Core palette */
+  --primary:   #2D1B69;
+  --secondary: #4B2E83;
+  --accent:    #9F7AEA;
+  --highlight: #5A4FCF;
+  --bg:        #F4F1FA;
+  --bg-alt:    #EDE9F5;
+  --bg-dark:   #1A1128;
+  --text:      #1E1E2E;
+  --text-muted:#6B6580;
+  --border:    rgba(45,27,105,0.12);
+  --border-med:rgba(45,27,105,0.22);
+  --border-strong:rgba(45,27,105,0.38);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(45,27,105,0.08);
+  --shadow-md: 0 4px 16px rgba(45,27,105,0.12);
+  --shadow-violet: 0 2px 20px rgba(90,79,207,0.18);
+
+  /* Typography */
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'IBM Plex Sans', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.4rem;
+  --space-sm: 0.8rem;
+  --space-md: 1.6rem;
+  --space-lg: 3.2rem;
+  --space-xl: 6rem;
+  --space-2xl:9rem;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --t-fast: 0.18s;
+  --t-med:  0.35s;
+  --t-slow: 0.6s;
+}
+
+/* ── RESET & BASE ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.75;
+  overflow-x: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── TYPOGRAPHY ──────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--primary);
+}
+h1 { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+h3 { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+h4 { font-size: 1.1rem; }
+
+p { color: var(--text); }
+em { font-family: var(--serif); font-style: italic; }
+strong { font-weight: 500; }
+a { color: inherit; text-decoration: none; }
+
+.label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.text-muted { color: var(--text-muted); }
+.body-lg { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 clamp(1.2rem, 5vw, 4rem);
+}
+.section { padding: var(--space-xl) 0; }
+.section + .section { border-top: 1px solid var(--border); }
+
+/* ── FORMULA WATERMARK ───────────────────────────── */
+.formula-bg {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden;
+  z-index: 0; opacity: 0.04;
+  font-family: var(--mono); font-size: clamp(0.7rem, 1vw, 0.9rem);
+  color: var(--primary); line-height: 3; word-break: break-all;
+  padding: 2rem; user-select: none;
+}
+
+/* ── SCROLL PROGRESS ─────────────────────────────── */
+#scroll-progress {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── NAVIGATION ──────────────────────────────────── */
+#main-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(244, 241, 250, 0.93);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow var(--t-med) var(--ease);
+}
+#main-nav.scrolled { box-shadow: var(--shadow-md); }
+
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.85rem clamp(1.2rem, 5vw, 4rem);
+  gap: 2rem;
+}
+.nav-logo {
+  font-family: var(--serif); font-size: 1.3rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; white-space: nowrap;
+}
+.nav-logo sup {
+  font-family: var(--mono); font-size: 0.48rem;
+  color: var(--accent); letter-spacing: 0.1em; vertical-align: super;
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  font-size: 0.8rem; font-weight: 400; letter-spacing: 0.04em;
+  color: var(--text-muted);
+  transition: color var(--t-fast);
+  position: relative; padding-bottom: 2px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1px;
+  background: var(--accent); transition: width var(--t-med) var(--ease);
+}
+.nav-links a:hover, .nav-links a.active { color: var(--primary); }
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+.nav-search {
+  display: flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border-med); padding: 0.35rem 0.8rem;
+  background: transparent; transition: border-color var(--t-fast);
+}
+.nav-search:focus-within { border-color: var(--accent); }
+.nav-search input {
+  border: none; background: transparent; outline: none;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text); width: 140px;
+}
+.nav-search input::placeholder { color: var(--text-muted); }
+.nav-search-icon { color: var(--text-muted); font-size: 0.75rem; }
+
+.nav-cta {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; border: 1px solid var(--primary);
+  color: var(--primary); padding: 0.45rem 1.1rem;
+  transition: background var(--t-fast), color var(--t-fast);
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--primary); color: var(--bg); }
+
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 4px;
+  cursor: pointer; padding: 4px;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--primary); transition: all var(--t-med);
+}
+
+/* ── BREADCRUMB ──────────────────────────────────── */
+.breadcrumb {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em;
+  color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.breadcrumb a { color: var(--accent); }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb-sep { opacity: 0.4; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer; transition: all var(--t-med) var(--ease);
+  border: none; background: none;
+}
+.btn-primary {
+  background: var(--primary); color: var(--bg);
+  padding: 0.75rem 1.8rem;
+}
+.btn-primary:hover {
+  background: var(--highlight);
+  box-shadow: 0 4px 16px rgba(90,79,207,0.3);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  border: 1px solid var(--border-strong); color: var(--primary);
+  padding: 0.75rem 1.8rem;
+}
+.btn-outline:hover {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(159,122,234,0.1);
+}
+.btn-ghost {
+  color: var(--text-muted); border-bottom: 1px solid var(--border-med);
+  padding-bottom: 2px; border-radius: 0;
+}
+.btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── SCIENTIFIC PANELS (replaces generic cards) ─── */
+.sci-panel {
+  border: 1px solid var(--border);
+  padding: 2rem 1.8rem;
+  background: var(--bg);
+  transition: border-color var(--t-med), box-shadow var(--t-med);
+  position: relative; overflow: hidden;
+}
+.sci-panel::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 2px; height: 0;
+  background: linear-gradient(180deg, var(--accent), var(--highlight));
+  transition: height var(--t-slow) var(--ease);
+}
+.sci-panel:hover::before { height: 100%; }
+.sci-panel:hover {
+  border-color: rgba(159,122,234,0.3);
+  box-shadow: var(--shadow-violet);
+}
+
+/* ── SECTION DIVIDERS ────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3; margin: var(--space-lg) 0;
+}
+.divider-molecule {
+  display: flex; align-items: center; gap: 1.2rem;
+  margin: var(--space-lg) 0; opacity: 0.3;
+}
+.divider-molecule::before, .divider-molecule::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent));
+}
+.divider-molecule::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.divider-molecule-icon {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--accent);
+}
+
+/* ── DID YOU KNOW BLOCKS ─────────────────────────── */
+.dyk-block {
+  border-left: 3px solid var(--accent);
+  padding: 1.2rem 1.6rem; background: rgba(159,122,234,0.06);
+  margin: 2rem 0; position: relative;
+}
+.dyk-block .dyk-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
+}
+.dyk-block p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* ── KEY INSIGHT ─────────────────────────────────── */
+.insight-block {
+  background: var(--primary); color: var(--bg);
+  padding: 2rem 2.5rem; position: relative; overflow: hidden;
+}
+.insight-block::before {
+  content: '"'; position: absolute; top: -1.5rem; left: 1.2rem;
+  font-family: var(--serif); font-size: 8rem; color: var(--accent);
+  opacity: 0.12; line-height: 1; pointer-events: none;
+}
+.insight-block .insight-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+}
+.insight-block .insight-text {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.25rem; line-height: 1.6; font-weight: 300;
+}
+
+/* ── QUICK SUMMARY PANEL ─────────────────────────── */
+.quick-summary {
+  border: 1px solid var(--border-med); padding: 1.6rem 2rem;
+  background: rgba(159,122,234,0.04); margin-bottom: 2.5rem;
+}
+.quick-summary-label {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;
+}
+.quick-summary-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border-med);
+}
+.quick-summary ul { list-style: none; }
+.quick-summary ul li {
+  font-size: 0.88rem; padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border); color: var(--text-muted);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+.quick-summary ul li::before {
+  content: '→'; font-family: var(--mono); font-size: 0.65rem;
+  color: var(--accent); flex-shrink: 0;
+}
+
+/* ── TOOLTIPS ────────────────────────────────────── */
+.tooltip {
+  position: relative; border-bottom: 1px dashed var(--accent);
+  cursor: help; display: inline-block;
+}
+.tooltip::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--primary); color: var(--bg);
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.04em;
+  white-space: nowrap; padding: 0.4rem 0.8rem;
+  pointer-events: none; opacity: 0;
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  z-index: 50;
+}
+.tooltip:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ── SCROLL REVEAL ───────────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity var(--t-slow) var(--ease-out),
+              transform var(--t-slow) var(--ease-out);
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── BACK TO TOP ─────────────────────────────────── */
+#back-to-top {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 100;
+  width: 42px; height: 42px;
+  background: var(--primary); color: var(--bg);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; opacity: 0; pointer-events: none;
+  transition: opacity var(--t-med), transform var(--t-med), background var(--t-fast);
+  transform: translateY(8px);
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; transform: none; }
+#back-to-top:hover { background: var(--highlight); transform: translateY(-2px); }
+
+/* ── FOOTER ──────────────────────────────────────── */
+#main-footer {
+  border-top: 1px solid var(--border-med);
+  padding: 4rem 0 2rem; background: var(--bg-alt);
+}
+.footer-grid {
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem;
+  margin-bottom: 2.5rem;
+}
+.footer-brand-name {
+  font-family: var(--serif); font-size: 1.2rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; display: block;
+  margin-bottom: 0.7rem;
+}
+.footer-brand p { font-size: 0.8rem; color: var(--text-muted); max-width: 26ch; }
+.footer-col h4 {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+}
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 0.5rem; }
+.footer-col ul a { font-size: 0.82rem; color: var(--text-muted); transition: color var(--t-fast); }
+.footer-col ul a:hover { color: var(--primary); }
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.5rem; border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted);
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+/* ── ATOMIC ORBIT ANIMATION ──────────────────────── */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(28px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(28px) rotate(-360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(20px) rotate(360deg); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(159,122,234,0); }
+  50% { box-shadow: 0 0 0 6px rgba(159,122,234,0.12); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links, .nav-search { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-links.open {
+    display: flex; flex-direction: column;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 1.5rem clamp(1.2rem, 5vw, 4rem);
+    gap: 1.2rem;
+  }
+  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* === INTERACTIONS === */
+/* ═══════════════════════════════════════════════════════
+   CHEMSPREAD · INTERACTIONS v3.0
+   Animation system, micro-interactions, particle canvas,
+   DYK engine, ripple, molecule hover, compound tags
+   ═══════════════════════════════════════════════════════ */
+
+/* ── ENHANCED REVEAL SYSTEM ────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.65s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.65s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* stagger children */
+.reveal-stagger > * {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity 0.55s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.55s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay: 0.13s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay: 0.21s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay: 0.29s; }
+.reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay: 0.37s; }
+.reveal-stagger.visible > *:nth-child(6) { opacity:1; transform:none; transition-delay: 0.45s; }
+
+/* ── PARTICLE CANVAS ───────────────────────────────── */
+#cs-particle-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; opacity: 0.35;
+}
+
+/* ── BUTTON UPGRADES ───────────────────────────────── */
+.btn-primary,
+.btn-outline,
+.btn,
+.calc-btn-run,
+.nav-cta {
+  position: relative; overflow: hidden;
+  transform: translateZ(0); /* GPU layer */
+}
+/* ripple */
+.ripple-wave {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0); animation: rippleAnim 0.55s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(3.5); opacity: 0; }
+}
+
+/* hover scale + glow */
+.btn-primary:hover,
+.calc-btn-run:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 22px rgba(90,79,207,0.32);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* ── SCI-PANEL HOVER LIFT ──────────────────────────── */
+.sci-panel {
+  transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1),
+              border-color 0.35s, box-shadow 0.35s;
+}
+.sci-panel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(90,79,207,0.14);
+}
+
+/* ── TEXT UNDERLINE GROW ───────────────────────────── */
+.ul-grow {
+  position: relative; display: inline-block;
+}
+.ul-grow::after {
+  content: ''; position: absolute; bottom: -1px; left: 0;
+  width: 0; height: 1px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1);
+}
+.ul-grow:hover::after { width: 100%; }
+
+/* ── DID-YOU-KNOW ENGINE ───────────────────────────── */
+.dyk-rotating {
+  position: relative; overflow: hidden;
+  min-height: 60px;
+}
+.dyk-rotating p {
+  position: absolute; inset: 0;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  padding-top: 2px;
+}
+.dyk-rotating p.dyk-active {
+  opacity: 1; transform: translateY(0);
+  position: relative;
+}
+.dyk-dots {
+  display: flex; gap: 5px; margin-top: 0.8rem;
+}
+.dyk-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border-strong); cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+}
+.dyk-dot.active { background: var(--accent); transform: scale(1.3); }
+
+/* ── MOLECULE CARD HOVER ───────────────────────────── */
+.mol-card {
+  transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1),
+              box-shadow 0.4s;
+}
+.mol-card:hover {
+  transform: rotate(1.5deg) translateY(-4px);
+  box-shadow: 0 10px 28px rgba(90,79,207,0.16);
+}
+.mol-card:hover .mol-bond { stroke: var(--accent); filter: drop-shadow(0 0 3px rgba(159,122,234,0.5)); }
+.mol-card:hover .mol-atom { fill: var(--highlight); }
+
+/* ── COMPOUND TAGS ─────────────────────────────────── */
+.tag-system { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.2rem 0; }
+.chem-tag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.28rem 0.65rem;
+  border: 1px solid var(--border-med); color: var(--text-muted);
+  cursor: pointer; transition: all 0.22s;
+  user-select: none;
+}
+.chem-tag:hover { border-color: var(--accent); color: var(--accent); }
+.chem-tag.tag-active {
+  background: var(--primary); color: var(--bg); border-color: var(--primary);
+}
+.chem-tag[data-tag="organic"]    { --tc: #9F7AEA; }
+.chem-tag[data-tag="inorganic"]  { --tc: #5A4FCF; }
+.chem-tag[data-tag="industrial"] { --tc: #B87333; }
+.chem-tag[data-tag="biological"] { --tc: #27AE60; }
+.chem-tag.tag-active { background: var(--tc,var(--primary)); border-color: var(--tc,var(--primary)); }
+
+/* ── ELEMENT COMPARISON PANEL ──────────────────────── */
+#compare-panel {
+  display: none; margin-top: 2rem;
+  border: 1px solid var(--border-med);
+  animation: fadeSlideUp 0.35s ease;
+  overflow: hidden;
+}
+#compare-panel.open { display: block; }
+
+.compare-header {
+  background: var(--primary); color: var(--bg);
+  padding: 0.9rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+}
+.compare-close {
+  cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+  background: none; border: none; color: var(--bg); font-size: 1rem;
+}
+.compare-close:hover { opacity: 1; }
+
+.compare-body {
+  display: grid; grid-template-columns: 1fr 60px 1fr;
+  gap: 0; background: var(--bg);
+}
+.compare-col {
+  padding: 1.8rem;
+}
+.compare-col:first-child { border-right: 1px solid var(--border); }
+.compare-col:last-child  { border-left: 1px solid var(--border); }
+.compare-vs {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 1.2rem; color: var(--text-muted);
+  font-style: italic;
+}
+.compare-symbol {
+  font-family: var(--serif); font-size: 3.5rem; font-weight: 700;
+  color: var(--primary); line-height: 1; margin-bottom: 0.2rem;
+}
+.compare-name {
+  font-family: var(--serif); font-size: 1.2rem; color: var(--primary); margin-bottom: 1rem;
+}
+.compare-row {
+  padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.83rem;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-key { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
+.compare-val { font-family: var(--serif); font-size: 1rem; color: var(--text); }
+.compare-bar-wrap { margin-top: 0.3rem; height: 3px; background: var(--border); }
+.compare-bar {
+  height: 100%; background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.8s cubic-bezier(0.25,0.8,0.25,1); width: 0;
+}
+
+/* compare select buttons on periodic table */
+.el-compare-btn {
+  position: absolute; top: 2px; right: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; z-index: 5;
+  transition: background 0.18s, border-color 0.18s;
+  display: none;
+}
+.el:hover .el-compare-btn { display: block; }
+.el-compare-btn:hover { background: var(--accent); border-color: var(--accent); }
+.el.compare-selected { background: rgba(159,122,234,0.12) !important; border-color: var(--accent) !important; }
+.el.compare-selected .el-compare-btn { display: block; background: var(--accent); border-color: var(--accent); }
+
+/* ── TREND CHARTS SECTION ──────────────────────────── */
+#trend-charts {
+  padding: 3rem 0 4rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.trend-tabs {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  margin-bottom: 2rem; width: fit-content;
+}
+.trend-tab {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.6rem 1.2rem;
+  cursor: pointer; border-right: 1px solid var(--border);
+  color: var(--text-muted); transition: all 0.2s;
+  background: var(--bg); border-radius: 0;
+}
+.trend-tab:last-child { border-right: none; }
+.trend-tab.active { background: var(--primary); color: var(--bg); }
+.trend-tab:hover:not(.active) { color: var(--primary); background: rgba(159,122,234,0.06); }
+
+.trend-chart-wrap {
+  position: relative; height: 320px;
+  border: 1px solid var(--border); background: var(--bg); padding: 1.5rem;
+}
+.trend-chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* ── REACTION FILTER ───────────────────────────────── */
+.reaction-filter { margin: 1.5rem 0; }
+.filter-group {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem;
+  align-items: center;
+}
+.filter-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase; min-width: 60px;
+}
+
+/* reaction cards */
+.reaction-card {
+  border: 1px solid var(--border); padding: 1.4rem 1.6rem; margin-bottom: 1px;
+  transition: all 0.3s ease; background: var(--bg);
+  position: relative; overflow: hidden;
+}
+.reaction-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform 0.35s ease;
+}
+.reaction-card:hover::before { transform: scaleY(1); }
+.reaction-card.hidden { display: none; }
+.reaction-card:hover { border-color: rgba(159,122,234,0.3); transform: translateX(4px); }
+
+.rc-formula { font-family: var(--mono); font-size: 0.85rem; color: var(--primary); margin-bottom: 0.4rem; }
+.rc-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.rc-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.rc-tag {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.18rem 0.5rem;
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+
+/* ── AMBIENT SOUND TOGGLE ──────────────────────────── */
+#sound-toggle {
+  position: fixed; bottom: 2rem; left: 2rem; z-index: 100;
+  width: 38px; height: 38px;
+  background: var(--bg-alt); border: 1px solid var(--border-med);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--text-muted);
+  transition: all 0.22s; border-radius: 50%;
+  opacity: 0.7;
+}
+#sound-toggle:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+#sound-toggle.sound-on { background: var(--primary); color: var(--bg); border-color: var(--primary); opacity: 1; }
+
+/* ── ELEMENT HOVER PREVIEW ─────────────────────────── */
+#el-hover-preview {
+  position: fixed; z-index: 500; pointer-events: none;
+  background: var(--primary); color: var(--bg);
+  padding: 0.8rem 1.1rem; border: 1px solid rgba(159,122,234,0.3);
+  max-width: 200px; min-width: 150px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.18s, transform 0.18s;
+  font-family: var(--mono);
+}
+#el-hover-preview.visible { opacity: 1; transform: translateY(0); }
+#el-hover-preview .ph-sym { font-family: var(--serif); font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1; }
+#el-hover-preview .ph-name { font-size: 0.75rem; margin: 0.2rem 0; }
+#el-hover-preview .ph-num { font-size: 0.6rem; opacity: 0.6; letter-spacing: 0.08em; }
+#el-hover-preview .ph-desc { font-size: 0.6rem; opacity: 0.7; margin-top: 0.4rem; line-height: 1.5; }
+
+/* ── SCROLL PROGRESS (thicker, brighter) ───────────── */
+#scroll-progress {
+  height: 3px !important;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--highlight)) !important;
+  box-shadow: 0 0 8px rgba(159,122,234,0.4);
+}
+
+/* ── BACK TO TOP (circular) ────────────────────────── */
+#back-to-top {
+  border-radius: 50% !important;
+  width: 44px !important; height: 44px !important;
+  box-shadow: var(--shadow-violet);
+  transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1) !important;
+}
+#back-to-top:hover { transform: translateY(-3px) scale(1.08) !important; }
+
+/* ── MOBILE REDUCTION ──────────────────────────────── */
+@media (max-width: 768px) {
+  #cs-particle-canvas { display: none; }
+  .sci-panel:hover { transform: none; }
+  .mol-card:hover { transform: none; }
+  .compare-body { grid-template-columns: 1fr; }
+  .compare-vs { display: none; }
+}
+
+/* ── KEYFRAMES ─────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
+
+</style>
+<style>
+body { padding-top: 58px; }
+.page-hero { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+
+/* TOPIC SECTIONS — each has its own layout rhythm */
+.topic-section { padding: 5rem 0; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+.topic-section:last-child { border-bottom: none; }
+.topic-section:nth-child(even) { background: var(--bg-alt); }
+
+/* layout variants */
+.layout-text-wide { max-width: 720px; }
+.layout-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+.layout-sidebar { display: grid; grid-template-columns: 1fr 280px; gap: 4rem; align-items: start; }
+.layout-3col { display: grid; grid-template-columns: repeat(3,1fr); gap: 2.5rem; }
+
+.topic-anchor { scroll-margin-top: 80px; }
+
+.topic-label { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
+.topic-num-badge {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+  background: var(--primary); color: var(--bg);
+  padding: 0.2rem 0.5rem;
+}
+.topic-section h2 { margin-bottom: 1.2rem; }
+
+.topic-body p { color: var(--text-muted); line-height: 1.8; margin-bottom: 1.2rem; }
+.topic-body p:last-child { margin-bottom: 0; }
+
+.formula-block {
+  font-family: var(--mono); font-size: 1.1rem; color: var(--primary);
+  padding: 1rem 1.4rem; border: 1px solid var(--border-med);
+  background: rgba(90,79,207,0.04); margin: 1.5rem 0;
+  letter-spacing: 0.05em;
+}
+
+.key-terms { list-style: none; margin: 1.5rem 0; }
+.key-terms li {
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  display: flex; gap: 1rem; font-size: 0.87rem;
+}
+.key-terms li:last-child { border-bottom: none; }
+.term { font-family: var(--mono); font-size: 0.75rem; color: var(--primary); min-width: 120px; }
+
+.sci-diagram {
+  padding: 2rem; border: 1px solid var(--border);
+  background: var(--bg); text-align: center;
+}
+.sci-diagram svg { max-width: 100%; }
+
+/* states of matter diagram */
+.state-boxes {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 1px;
+  border: 1px solid var(--border); margin: 1.5rem 0;
+}
+.state-box {
+  padding: 1.2rem 1rem; text-align: center;
+  background: var(--bg); border-right: 1px solid var(--border);
+}
+.state-box:last-child { border-right: none; }
+.state-name { font-family: var(--serif); font-size: 1rem; font-weight: 700; color: var(--primary); }
+.state-formula { font-family: var(--mono); font-size: 0.65rem; color: var(--accent); margin: 0.3rem 0; }
+.state-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+
+@media (max-width: 900px) {
+  .layout-2col, .layout-sidebar, .layout-3col { grid-template-columns: 1fr; gap: 2rem; }
+}
+@media (max-width: 600px) {
+  .state-boxes { grid-template-columns: 1fr; }
+  .state-box { border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+<div class="page-hero">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">/</span><span>Topics</span></div>
+    <span class="label">Curriculum · Class 8–12 · Six Core Chapters</span>
+    <h1 style="margin-top:0.4rem">Chemistry Topics</h1>
+    <p class="body-lg" style="margin-top:0.5rem;max-width:55ch">A structured curriculum from matter and atomic structure through to organic chemistry — explained from first principles.</p>
+
+    <div class="quick-summary" style="margin-top:2rem">
+      <div class="quick-summary-label">Quick Navigation</div>
+      <ul>
+        <li><a href="#matter" style="color:var(--primary)">01 · Matter &amp; Its States</a></li>
+        <li><a href="#atomic" style="color:var(--primary)">02 · Atomic Structure</a></li>
+        <li><a href="#bonding" style="color:var(--primary)">03 · Chemical Bonding</a></li>
+        <li><a href="#acids" style="color:var(--primary)">04 · Acids, Bases &amp; Salts</a></li>
+        <li><a href="#thermo" style="color:var(--primary)">05 · Thermochemistry</a></li>
+        <li><a href="#organic" style="color:var(--primary)">06 · Organic Chemistry</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 01 MATTER -->
+
+<!-- ══ KNOWLEDGE CONNECTIONS BAR ══ -->
+<div style="background:var(--primary);color:var(--bg);padding:1.4rem 2rem;margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+  <div>
+    <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem">Structured Learning</div>
+    <div style="font-family:var(--serif);font-size:1.1rem">Follow a guided path instead of browsing freely</div>
+  </div>
+  <a href="learning-path.html" style="font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;padding:.6rem 1.2rem;text-decoration:none;transition:background .18s;white-space:nowrap">→ View Learning Paths</a>
+</div>
+
+<!-- ══ TOPIC QUICK SUMMARY ══ -->
+<div class="quick-summary reveal" style="margin-bottom:2.5rem">
+  <div class="quick-summary-label">Key Principles — Read These First</div>
+  <ul>
+    <li>Atomic structure determines ALL chemical properties — reactivity, bonding type, colour, and metallic character</li>
+    <li>Bond type (ionic/covalent/metallic) determines melting point, conductivity, and solubility</li>
+    <li>Energy is always conserved — exothermic reactions release energy stored in chemical bonds</li>
+    <li>The mole is the bridge between the atomic world (invisible) and the lab world (weighable)</li>
+    <li>Organic chemistry's diversity comes from carbon's ability to form 4 bonds and chain with itself</li>
+  </ul>
+</div>
+
+<!-- ══ WHY SECTIONS INTRO ══ -->
+<div class="insight-block reveal" style="margin-bottom:2.5rem">
+  <div class="insight-label">Our Approach</div>
+  <div class="insight-text">"Chemistry makes sense when you understand WHY — not just what happens, but the deeper reason it must happen that way. Every section below includes a 'Why it happens' explanation alongside the content."</div>
+</div>
+
+<section class="topic-section" id="matter">
+  <div class="container">
+    <div class="layout-sidebar">
+      <div>
+        <div class="topic-label topic-anchor">
+          <span class="topic-num-badge">01</span>
+          <span class="label">Foundation</span>
+        </div>
+        <h2>Matter &amp; Its States</h2>
+        <div class="topic-body">
+          <p>Matter is anything that has mass and occupies space. The three classical states — solid, liquid, and gas — differ in how strongly their particles interact and how much freedom of motion those particles have.</p>
+          <p>A fourth state, plasma, exists at extremely high temperatures and consists of ionised particles. It is the most abundant form of visible matter in the universe.</p>
+        </div>
+
+        <div class="state-boxes reveal">
+          <div class="state-box"><div class="state-name">Solid</div><div class="state-formula">close-packed</div><div class="state-desc">Fixed shape and volume. Particles vibrate in fixed positions.</div></div>
+          <div class="state-box"><div class="state-name">Liquid</div><div class="state-formula">H₂O (l)</div><div class="state-desc">Fixed volume, takes container shape. Particles flow past each other.</div></div>
+          <div class="state-box"><div class="state-name">Gas</div><div class="state-formula">H₂O (g)</div><div class="state-desc">No fixed shape or volume. Particles move freely and rapidly.</div></div>
+        </div>
+
+        <div class="dyk-block reveal">
+          <div class="dyk-label">Did you know?</div>
+          <p>Water is one of the few substances less dense as a solid than as a liquid. This is why ice floats — and why aquatic life can survive beneath frozen lake surfaces in winter.</p>
+        </div>
+      </div>
+      <div>
+        <div class="insight-block reveal">
+          <div class="insight-label">Key Concept</div>
+          <div class="insight-text">Phase changes occur at constant temperature — all energy goes into changing arrangement, not raising temperature.</div>
+        </div>
+        <ul class="key-terms reveal" style="margin-top:1.5rem">
+          <li><span class="term">Melting</span><span>Solid → Liquid (endothermic)</span></li>
+          <li><span class="term">Freezing</span><span>Liquid → Solid (exothermic)</span></li>
+          <li><span class="term">Vaporisation</span><span>Liquid → Gas (endothermic)</span></li>
+          <li><span class="term">Condensation</span><span>Gas → Liquid (exothermic)</span></li>
+          <li><span class="term">Sublimation</span><span>Solid → Gas directly (e.g. dry ice)</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem" class="reveal">
+          <div>
+            <div class="dyk-block">
+              <div class="dyk-label">⚡ Why does water expand when it freezes?</div>
+              <p>Hydrogen bonds in liquid water are constantly breaking and forming — molecules are close-packed. When ice forms, H-bonds LOCK into a hexagonal lattice with gaps — less dense. This is why ice floats and aquatic life survives under frozen surfaces in winter. No other common substance does this.</p>
+            </div>
+          </div>
+          <div>
+            <div class="mistake-box" style="border-left:3px solid #C0392B;padding:.9rem 1rem;background:rgba(192,57,43,.05)">
+              <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#C0392B;margin-bottom:.3rem">⚠ Common Mistake</div>
+              <p style="font-size:.82rem;color:var(--text-muted);line-height:1.7">Students think boiling point depends only on molecular mass. Wrong — intermolecular forces matter more. Water (M=18, bp=100°C) boils far higher than H₂S (M=34, bp=−60°C) because of stronger hydrogen bonding, not mass.</p>
+            </div>
+            <div style="margin-top:.8rem;padding:.8rem 1rem;border:1px solid var(--border);background:var(--bg-alt)">
+              <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem">🔗 Connects to</div>
+              <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+                <a href="topics.html#bonding" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none;transition:all .18s" onmouseover="this.style.background='rgba(159,122,234,.1)'" onmouseout="this.style.background=''">Intermolecular Forces</a>
+                <a href="molecules.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none;transition:all .18s" onmouseover="this.style.background='rgba(159,122,234,.1)'" onmouseout="this.style.background=''">VSEPR & Polarity</a>
+                <a href="topics.html#thermo" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none;transition:all .18s" onmouseover="this.style.background='rgba(159,122,234,.1)'" onmouseout="this.style.background=''">Enthalpy of Fusion</a>
+                <a href="daily-chemistry.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none;transition:all .18s" onmouseover="this.style.background='rgba(159,122,234,.1)'" onmouseout="this.style.background=''">Water in Daily Life</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+</section>
+
+<!-- 02 ATOMIC STRUCTURE -->
+<section class="topic-section" id="atomic">
+  <div class="container">
+    <div class="layout-2col">
+      <div>
+        <div class="topic-label topic-anchor">
+          <span class="topic-num-badge">02</span>
+          <span class="label">Atomic Structure</span>
+        </div>
+        <h2>Inside the Atom</h2>
+        <div class="topic-body">
+          <p>The atom is the smallest unit of an element that retains its chemical identity. It consists of a nucleus (protons + neutrons) surrounded by electrons in shells or orbitals.</p>
+          <p>The atomic number (Z) equals the number of protons and defines the element. The mass number (A) = protons + neutrons. Isotopes are atoms of the same element with different neutron counts.</p>
+        </div>
+        <div class="formula-block reveal">Z = number of protons<br/>A = Z + N (neutrons)<br/>Isotopes: same Z, different A</div>
+        <div class="topic-body">
+          <p>Electrons occupy energy levels (shells). The Aufbau principle states that electrons fill the lowest available energy level first. Hund's rule and the Pauli exclusion principle further govern how electrons populate orbitals.</p>
+        </div>
+      </div>
+      <div>
+        <div class="sci-diagram reveal">
+          <!-- Atom SVG diagram -->
+          <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" style="max-width:220px">
+            <!-- nucleus -->
+            <circle cx="120" cy="120" r="20" fill="var(--primary)" opacity="0.85"/>
+            <text x="120" y="125" text-anchor="middle" font-family="Cormorant Garamond" font-size="11" fill="white">p⁺ n⁰</text>
+            <!-- shells -->
+            <ellipse cx="120" cy="120" rx="55" ry="35" fill="none" stroke="var(--accent)" stroke-width="1" opacity="0.4"/>
+            <ellipse cx="120" cy="120" rx="85" ry="55" fill="none" stroke="var(--accent)" stroke-width="1" opacity="0.3" transform="rotate(60,120,120)"/>
+            <ellipse cx="120" cy="120" rx="108" ry="68" fill="none" stroke="var(--accent)" stroke-width="1" opacity="0.2" transform="rotate(120,120,120)"/>
+            <!-- electrons -->
+            <circle cx="175" cy="120" r="5" fill="var(--accent)" opacity="0.9"/>
+            <circle cx="120" cy="65" r="5" fill="var(--accent)" opacity="0.9"/>
+            <circle cx="34" cy="148" r="5" fill="var(--accent)" opacity="0.9"/>
+            <!-- labels -->
+            <text x="183" y="124" font-family="JetBrains Mono" font-size="8" fill="var(--text-muted)">e⁻</text>
+            <text x="125" y="62" font-family="JetBrains Mono" font-size="8" fill="var(--text-muted)">e⁻</text>
+            <text x="18" y="152" font-family="JetBrains Mono" font-size="8" fill="var(--text-muted)">e⁻</text>
+            <text x="94" y="235" font-family="JetBrains Mono" font-size="9" fill="var(--primary)" opacity="0.5">Bohr model</text>
+          </svg>
+        </div>
+        <ul class="key-terms reveal">
+          <li><span class="term">Proton</span><span>+1 charge, in nucleus. Determines element identity.</span></li>
+          <li><span class="term">Neutron</span><span>No charge, in nucleus. Determines isotope.</span></li>
+          <li><span class="term">Electron</span><span>−1 charge, in shells/orbitals around nucleus.</span></li>
+          <li><span class="term">Orbital</span><span>Region of space where electron is likely found (s, p, d, f).</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem" class="reveal">
+          <div>
+            <div class="dyk-block">
+              <div class="dyk-label">⚡ Why do electrons occupy specific energy levels?</div>
+              <p>Electrons are waves (de Broglie: λ = h/mv). They can only exist where their wave fits perfectly around the nucleus — like a standing wave on a guitar string. Only certain wavelengths fit: 1 half-wavelength, 2 half-wavelengths, etc. — these are the energy levels. This is WHY they're quantised, not arbitrary.</p>
+            </div>
+          </div>
+          <div>
+            <div class="mistake-box" style="border-left:3px solid #C0392B;padding:.9rem 1rem;background:rgba(192,57,43,.05)">
+              <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#C0392B;margin-bottom:.3rem">⚠ Common Mistake</div>
+              <p style="font-size:.82rem;color:var(--text-muted);line-height:1.7">Atomic number = protons (defines the element). Mass number = protons + neutrons. Isotopes have SAME atomic number, DIFFERENT mass number. ¹²C and ¹⁴C are both carbon (6 protons) — different neutron counts. Mass number is NOT atomic mass (which is a weighted average of isotopes).</p>
+            </div>
+            <div style="margin-top:.8rem;padding:.8rem 1rem;border:1px solid var(--border);background:var(--bg-alt)">
+              <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem">🔗 Connects to</div>
+              <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+                <a href="topics.html#bonding" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Electron Configuration → Bonding</a>
+                <a href="periodic-table.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Periodic Trends</a>
+                <a href="bonding.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Bonding Visualizer</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+</section>
+
+<!-- 03 BONDING -->
+<section class="topic-section" id="bonding">
+  <div class="container">
+    <div class="topic-label topic-anchor">
+      <span class="topic-num-badge">03</span>
+      <span class="label">Chemical Bonding</span>
+    </div>
+    <h2 class="reveal">What holds matter together</h2>
+    <div class="layout-3col reveal-stagger" style="margin-top:2rem">
+      <div class="sci-panel reveal">
+        <div class="label" style="display:block;margin-bottom:0.6rem">Ionic Bond</div>
+        <h3 style="font-size:1.2rem">Electron Transfer</h3>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-top:0.5rem">Formed when one atom transfers electrons to another, creating oppositely charged ions that attract. Example: NaCl (Na⁺ and Cl⁻).</p>
+        <div class="formula-block" style="font-size:0.8rem;margin-top:1rem">Na → Na⁺ + e⁻<br/>Cl + e⁻ → Cl⁻</div>
+      </div>
+      <div class="sci-panel reveal" style="transition-delay:0.08s">
+        <div class="label" style="display:block;margin-bottom:0.6rem">Covalent Bond</div>
+        <h3 style="font-size:1.2rem">Electron Sharing</h3>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-top:0.5rem">Formed when atoms share electron pairs. Can be single (σ), double, or triple bonds. Example: H₂O, CO₂, N₂.</p>
+        <div class="formula-block" style="font-size:0.8rem;margin-top:1rem">H–H: shared pair<br/>O=C=O: double bonds</div>
+      </div>
+      <div class="sci-panel reveal" style="transition-delay:0.16s">
+        <div class="label" style="display:block;margin-bottom:0.6rem">Metallic Bond</div>
+        <h3 style="font-size:1.2rem">Sea of Electrons</h3>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-top:0.5rem">Metal atoms release their valence electrons to form a shared "electron sea." This gives metals their conductivity, malleability, and lustre.</p>
+        <div class="formula-block" style="font-size:0.8rem;margin-top:1rem">Cu: 1 free e⁻/atom<br/>Al: 3 free e⁻/atom</div>
+      </div>
+    </div>
+    <div class="dyk-block reveal" style="margin-top:2.5rem">
+      <div class="dyk-label">VSEPR Theory</div>
+      <p>The shape of a molecule is determined by the repulsion between electron pairs around the central atom. Water (H₂O) is bent, not linear, because its two lone pairs push the hydrogen atoms closer together — giving it a 104.5° bond angle.</p>
+    </div>
+  </div>
+
+        <div class="insight-block reveal" style="margin-top:2rem">
+          <div class="insight-label">WHY do ionic bonds form?</div>
+          <div class="insight-text">Na gives 1 electron to Cl not out of "generosity" — but because the lattice energy released (−787 kJ/mol) far exceeds the ionisation energy cost (+496 kJ/mol). Energy drives the process. Always ask: is the total energy change favourable?</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:1.5rem" class="reveal">
+          <div class="mistake-box" style="border-left:3px solid #C0392B;padding:.9rem 1rem;background:rgba(192,57,43,.05)">
+            <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#C0392B;margin-bottom:.3rem">⚠ Common Mistake — Polarity vs Polar</div>
+            <p style="font-size:.82rem;color:var(--text-muted);line-height:1.7">CO₂ has TWO polar C=O bonds. But it's a NON-POLAR molecule because it's linear — the two dipoles point in exactly opposite directions and cancel. H₂O has polar O-H bonds AND is polar because it's bent (104.5°) — dipoles don't cancel. Bond polarity ≠ molecule polarity.</p>
+          </div>
+          <div style="padding:.9rem 1rem;border:1px solid var(--border);background:var(--bg-alt)">
+            <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem">🎬 Try the Interactive Visualizer</div>
+            <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.8rem">Watch ionic, covalent, and metallic bonding happen step-by-step. See WHY electrons transfer vs share.</p>
+            <a href="bonding.html" style="font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;background:var(--primary);color:#fff;padding:.55rem 1.1rem;text-decoration:none;display:inline-block;transition:background .18s">→ Open Bonding Visualizer</a>
+          </div>
+        </div>
+
+</section>
+
+<!-- 04 ACIDS -->
+<section class="topic-section" id="acids">
+  <div class="container">
+    <div class="layout-sidebar">
+      <div>
+        <div class="topic-label topic-anchor">
+          <span class="topic-num-badge">04</span>
+          <span class="label">Acids, Bases &amp; Salts</span>
+        </div>
+        <h2>The Chemistry of pH</h2>
+        <div class="topic-body">
+          <p>Acids are proton donors (Brønsted–Lowry) or electron-pair acceptors (Lewis). Bases are proton acceptors or electron-pair donors. Their reaction produces a salt and water — neutralisation.</p>
+          <p>The pH scale runs from 0 (strongly acidic) to 14 (strongly basic), with 7 being neutral. Each unit change represents a 10-fold change in H⁺ concentration.</p>
+        </div>
+        <div class="formula-block reveal">pH = −log₁₀[H⁺]<br/>pOH = −log₁₀[OH⁻]<br/>pH + pOH = 14 (at 25°C)</div>
+        <div class="topic-body">
+          <p>Buffer solutions resist changes in pH. They typically consist of a weak acid and its conjugate base (or a weak base and its conjugate acid). Biological systems depend critically on pH buffering — blood pH must remain between 7.35 and 7.45.</p>
+        </div>
+      </div>
+      <div>
+        <div class="insight-block reveal">
+          <div class="insight-label">pH Scale</div>
+          <div class="insight-text">Stomach acid: pH ≈ 1.5. Lemon juice: pH ≈ 2. Blood: pH ≈ 7.4. Bleach: pH ≈ 13.</div>
+        </div>
+        <ul class="key-terms reveal" style="margin-top:1.5rem">
+          <li><span class="term">Strong acid</span><span>Fully dissociates in water (HCl, HNO₃, H₂SO₄)</span></li>
+          <li><span class="term">Weak acid</span><span>Partially dissociates (CH₃COOH, HF)</span></li>
+          <li><span class="term">Neutralisation</span><span>Acid + Base → Salt + Water</span></li>
+          <li><span class="term">Titration</span><span>Measuring concentration using a known-strength reagent</span></li>
+          <li><span class="term">Indicators</span><span>Litmus, phenolphthalein — change colour with pH</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem" class="reveal">
+          <div>
+            <div class="dyk-block">
+              <div class="dyk-label">⚡ Why is HF a weak acid despite F being the most electronegative?</div>
+              <p>Electronegativity makes F pull electrons strongly — but it also makes the H-F bond very short and STRONG (bond energy 568 kJ/mol vs H-Cl 432 kJ/mol). This strong bond resists dissociation in water. So HF is a WEAK acid (Ka = 6.8×10⁻⁴) despite fluorine's electronegativity. Acid strength depends on H-X bond energy, not just electronegativity.</p>
+            </div>
+          </div>
+          <div>
+            <div class="mistake-box" style="border-left:3px solid #C0392B;padding:.9rem 1rem;background:rgba(192,57,43,.05)">
+              <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#C0392B;margin-bottom:.3rem">⚠ Strong ≠ Concentrated</div>
+              <p style="font-size:.82rem;color:var(--text-muted);line-height:1.7">"Strong" acid = fully dissociates (HCl, HNO₃, H₂SO₄). "Weak" acid = partially dissociates (CH₃COOH, HF, H₂CO₃). "Concentrated" = high moles per litre. A concentrated weak acid can have lower pH than a dilute strong acid. These are completely independent concepts.</p>
+            </div>
+            <div style="margin-top:.8rem;padding:.8rem 1rem;border:1px solid var(--border);background:var(--bg-alt)">
+              <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem">🔗 Connects to</div>
+              <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+                <a href="calculators.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">pH Calculator</a>
+                <a href="experiments.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Titration Experiment</a>
+                <a href="reactions.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Neutralisation Reaction</a>
+                <a href="topics.html#moles" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Mole Concept → Concentration</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+</section>
+
+<!-- 05 THERMOCHEMISTRY -->
+<section class="topic-section" id="thermo">
+  <div class="container">
+    <div class="layout-2col">
+      <div>
+        <div class="topic-label topic-anchor">
+          <span class="topic-num-badge">05</span>
+          <span class="label">Thermochemistry</span>
+        </div>
+        <h2>Energy in Reactions</h2>
+        <div class="topic-body">
+          <p>Every chemical reaction involves energy changes. Exothermic reactions release energy (ΔH &lt; 0); endothermic reactions absorb it (ΔH &gt; 0). These changes are measured in kJ/mol.</p>
+          <p>Hess's Law states that the total enthalpy change is path-independent — it depends only on initial and final states. This allows calculation of ΔH for reactions that can't be measured directly.</p>
+        </div>
+        <div class="formula-block reveal">ΔH = Σ ΔHf°(products) − Σ ΔHf°(reactants)<br/>ΔG = ΔH − TΔS<br/>If ΔG &lt; 0: reaction is spontaneous</div>
+        <div class="dyk-block reveal">
+          <div class="dyk-label">Did you know?</div>
+          <p>When you burn 1 mole of methane (CH₄), it releases 890 kJ — enough to boil approximately 4.5 litres of water from room temperature.</p>
+        </div>
+      </div>
+      <div>
+        <ul class="key-terms reveal">
+          <li><span class="term">Enthalpy (H)</span><span>Heat content at constant pressure</span></li>
+          <li><span class="term">Entropy (S)</span><span>Measure of disorder / randomness</span></li>
+          <li><span class="term">Gibbs (G)</span><span>G = H − TS; predicts spontaneity</span></li>
+          <li><span class="term">Exothermic</span><span>Energy released; ΔH negative (e.g. combustion)</span></li>
+          <li><span class="term">Endothermic</span><span>Energy absorbed; ΔH positive (e.g. photosynthesis)</span></li>
+          <li><span class="term">Bond energy</span><span>Energy to break/form one mole of bonds</span></li>
+          <li><span class="term">Hess's Law</span><span>ΔH is path-independent</span></li>
+        </ul>
+        <div class="insight-block reveal" style="margin-top:1.5rem">
+          <div class="insight-label">Spontaneity</div>
+          <div class="insight-text">A reaction is spontaneous when ΔG &lt; 0. This depends on both enthalpy and entropy — a reaction can be spontaneous even if endothermic, if entropy increases enough.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem" class="reveal">
+          <div>
+            <div class="dyk-block">
+              <div class="dyk-label">⚡ Why can an endothermic reaction be spontaneous?</div>
+              <p>ΔG = ΔH − TΔS. If ΔS is positive (entropy increases) and T is high enough, TΔS can exceed ΔH, making ΔG negative (spontaneous) even if ΔH > 0. Dissolving NH₄NO₃ in water is endothermic (feels cold) but spontaneous at room temperature — entropy increases as ordered crystal becomes dispersed ions.</p>
+            </div>
+          </div>
+          <div>
+            <div class="mistake-box" style="border-left:3px solid #C0392B;padding:.9rem 1rem;background:rgba(192,57,43,.05)">
+              <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#C0392B;margin-bottom:.3rem">⚠ Hess's Law Sign Error</div>
+              <p style="font-size:.82rem;color:var(--text-muted);line-height:1.7">When reversing a reaction for Hess's Law, REVERSE THE SIGN of ΔH. If A→B has ΔH = −200 kJ/mol, then B→A has ΔH = +200 kJ/mol. This trips up many students in exam calculations. Always check: ΔH_forward = −ΔH_reverse.</p>
+            </div>
+            <div style="margin-top:.8rem;padding:.8rem 1rem;border:1px solid var(--border);background:var(--bg-alt)">
+              <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem">🔗 Connects to</div>
+              <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+                <a href="derivations.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Gibbs Energy Derivation</a>
+                <a href="reactions.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Reaction Energy Profiles</a>
+                <a href="calculators.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Enthalpy Calculator</a>
+                <a href="industrial.html" style="font-family:var(--mono);font-size:.58rem;color:var(--accent);border:1px solid var(--accent)44;padding:.15rem .4rem;text-decoration:none">Industrial Thermochemistry</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+</section>
+
+<!-- 06 ORGANIC -->
+<section class="topic-section" id="organic">
+  <div class="container">
+    <div class="topic-label topic-anchor">
+      <span class="topic-num-badge">06</span>
+      <span class="label">Organic Chemistry</span>
+    </div>
+    <h2 class="reveal">The Chemistry of Carbon</h2>
+    <p class="body-lg reveal" style="max-width:58ch;margin:0.6rem 0 2.5rem">Carbon's ability to form four bonds and chain with itself creates the enormous diversity of organic molecules — from simple methane to DNA.</p>
+
+    <div class="layout-3col reveal-stagger">
+      <div class="sci-panel reveal">
+        <div class="label" style="display:block;margin-bottom:0.5rem">Alkanes</div>
+        <h3 style="font-size:1.1rem">CₙH₂ₙ₊₂</h3>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:0.5rem">Single bonds only. Saturated. Methane (CH₄), ethane (C₂H₆), propane (C₃H₈). Used as fuels.</p>
+      </div>
+      <div class="sci-panel reveal" style="transition-delay:0.08s">
+        <div class="label" style="display:block;margin-bottom:0.5rem">Alkenes</div>
+        <h3 style="font-size:1.1rem">CₙH₂ₙ</h3>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:0.5rem">At least one C=C double bond. Unsaturated. Ethene (C₂H₄), propene. Undergo addition reactions.</p>
+      </div>
+      <div class="sci-panel reveal" style="transition-delay:0.16s">
+        <div class="label" style="display:block;margin-bottom:0.5rem">Alcohols</div>
+        <h3 style="font-size:1.1rem">R–OH</h3>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:0.5rem">Contain hydroxyl group (–OH). Methanol, ethanol. Undergo oxidation, esterification. Water-soluble.</p>
+      </div>
+      <div class="sci-panel reveal" style="transition-delay:0.24s">
+        <div class="label" style="display:block;margin-bottom:0.5rem">Carboxylic Acids</div>
+        <h3 style="font-size:1.1rem">R–COOH</h3>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:0.5rem">Acidic functional group. Ethanoic acid (vinegar), amino acids. Form esters with alcohols.</p>
+      </div>
+      <div class="sci-panel reveal" style="transition-delay:0.32s">
+        <div class="label" style="display:block;margin-bottom:0.5rem">Aromatic</div>
+        <h3 style="font-size:1.1rem">C₆H₆ (Benzene)</h3>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:0.5rem">Delocalised π electrons. Special stability (aromaticity). Undergo substitution reactions, not addition.</p>
+      </div>
+      <div class="sci-panel reveal" style="transition-delay:0.40s">
+        <div class="label" style="display:block;margin-bottom:0.5rem">Isomers</div>
+        <h3 style="font-size:1.1rem">Same formula, different structure</h3>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:0.5rem">Structural isomers have different connectivity. Stereoisomers have the same connectivity but different spatial arrangement.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 07 MOLE CONCEPT — anchored from search & nav -->
+<section class="topic-section" id="moles">
+  <div class="container">
+    <div class="layout-2col">
+      <div>
+        <div class="topic-label topic-anchor">
+          <span class="topic-num-badge">07</span>
+          <span class="label">Stoichiometry</span>
+        </div>
+        <h2>The Mole Concept</h2>
+        <div class="topic-body">
+          <p>The mole is the SI base unit for amount of substance. One mole of any substance contains exactly 6.022 × 10²³ particles — Avogadro's number. This bridges the atomic world (where we count individual atoms) and the laboratory world (where we weigh grams).</p>
+          <p>The molar mass of a substance (in g/mol) is numerically equal to its relative atomic or molecular mass. For water (H₂O): M = 2(1.008) + 15.999 = 18.015 g/mol. So 18.015 g of water contains exactly one mole — 6.022 × 10²³ molecules.</p>
+        </div>
+        <div class="formula-block reveal">
+          n = m / M &nbsp;&nbsp; (moles = mass ÷ molar mass)<br/>
+          N = n × Nₐ &nbsp;&nbsp; (number of particles)<br/>
+          Nₐ = 6.022 × 10²³ mol⁻¹
+        </div>
+        <div class="topic-body">
+          <p>Stoichiometry uses mole ratios from balanced equations to calculate how much of each substance is consumed or produced. The coefficients in a balanced equation directly give the mole ratios.</p>
+          <p>Example: 2H₂ + O₂ → 2H₂O tells us 2 mol H₂ reacts with 1 mol O₂ to produce 2 mol H₂O. If you start with 4 g of H₂ (= 2 mol), you need exactly 1 mol (32 g) of O₂.</p>
+        </div>
+        <div class="dyk-block reveal">
+          <div class="dyk-label">Scale of Avogadro's Number</div>
+          <p>If you had one mole of seconds, it would be 19 quadrillion years — over a million times the age of the universe. Yet chemists work routinely with moles of atoms in a single test tube.</p>
+        </div>
+      </div>
+      <div>
+        <div class="insight-block reveal">
+          <div class="insight-label">Why the Mole?</div>
+          <div class="insight-text">The mole makes chemistry calculable at human scale — it links atomic mass units (invisible) to grams (weighable).</div>
+        </div>
+        <ul class="key-terms reveal" style="margin-top:1.5rem">
+          <li><span class="term">Mole (mol)</span><span>Amount of substance; 6.022 × 10²³ particles</span></li>
+          <li><span class="term">Molar mass</span><span>Mass of 1 mol in g/mol; numerically = relative mass</span></li>
+          <li><span class="term">Avogadro (Nₐ)</span><span>6.022 × 10²³ — particles per mole</span></li>
+          <li><span class="term">Empirical formula</span><span>Simplest whole-number atom ratio</span></li>
+          <li><span class="term">Molecular formula</span><span>Actual number of atoms per molecule</span></li>
+          <li><span class="term">Limiting reagent</span><span>Reactant that runs out first; determines yield</span></li>
+          <li><span class="term">% yield</span><span>(actual/theoretical) × 100</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="js/compounds.js"></script>
+<script src="js/reactions.js"></script>
+<script src="js/knowledge-graph.js"></script>
+<script src="js/components.js"></script>
+<script src="js/interactions.js"></script>
+</body>
+</html>

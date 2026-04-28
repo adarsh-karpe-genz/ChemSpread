@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en" data-page="bonding">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Bonding Visualizer — ChemSpread</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+/* === DESIGN SYSTEM === */
+/* ═══════════════════════════════════════════════
+   CHEMSPREAD · DESIGN SYSTEM v2.0
+   Violet Scientific Editorial Theme
+   ═══════════════════════════════════════════════ */
+
+/* ── DESIGN TOKENS ──────────────────────────────── */
+:root {
+  /* Core palette */
+  --primary:   #2D1B69;
+  --secondary: #4B2E83;
+  --accent:    #9F7AEA;
+  --highlight: #5A4FCF;
+  --bg:        #F4F1FA;
+  --bg-alt:    #EDE9F5;
+  --bg-dark:   #1A1128;
+  --text:      #1E1E2E;
+  --text-muted:#6B6580;
+  --border:    rgba(45,27,105,0.12);
+  --border-med:rgba(45,27,105,0.22);
+  --border-strong:rgba(45,27,105,0.38);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(45,27,105,0.08);
+  --shadow-md: 0 4px 16px rgba(45,27,105,0.12);
+  --shadow-violet: 0 2px 20px rgba(90,79,207,0.18);
+
+  /* Typography */
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'IBM Plex Sans', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.4rem;
+  --space-sm: 0.8rem;
+  --space-md: 1.6rem;
+  --space-lg: 3.2rem;
+  --space-xl: 6rem;
+  --space-2xl:9rem;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --t-fast: 0.18s;
+  --t-med:  0.35s;
+  --t-slow: 0.6s;
+}
+
+/* ── RESET & BASE ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.75;
+  overflow-x: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── TYPOGRAPHY ──────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--primary);
+}
+h1 { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+h3 { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+h4 { font-size: 1.1rem; }
+
+p { color: var(--text); }
+em { font-family: var(--serif); font-style: italic; }
+strong { font-weight: 500; }
+a { color: inherit; text-decoration: none; }
+
+.label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.text-muted { color: var(--text-muted); }
+.body-lg { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 clamp(1.2rem, 5vw, 4rem);
+}
+.section { padding: var(--space-xl) 0; }
+.section + .section { border-top: 1px solid var(--border); }
+
+/* ── FORMULA WATERMARK ───────────────────────────── */
+.formula-bg {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden;
+  z-index: 0; opacity: 0.04;
+  font-family: var(--mono); font-size: clamp(0.7rem, 1vw, 0.9rem);
+  color: var(--primary); line-height: 3; word-break: break-all;
+  padding: 2rem; user-select: none;
+}
+
+/* ── SCROLL PROGRESS ─────────────────────────────── */
+#scroll-progress {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── NAVIGATION ──────────────────────────────────── */
+#main-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(244, 241, 250, 0.93);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow var(--t-med) var(--ease);
+}
+#main-nav.scrolled { box-shadow: var(--shadow-md); }
+
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.85rem clamp(1.2rem, 5vw, 4rem);
+  gap: 2rem;
+}
+.nav-logo {
+  font-family: var(--serif); font-size: 1.3rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; white-space: nowrap;
+}
+.nav-logo sup {
+  font-family: var(--mono); font-size: 0.48rem;
+  color: var(--accent); letter-spacing: 0.1em; vertical-align: super;
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  font-size: 0.8rem; font-weight: 400; letter-spacing: 0.04em;
+  color: var(--text-muted);
+  transition: color var(--t-fast);
+  position: relative; padding-bottom: 2px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1px;
+  background: var(--accent); transition: width var(--t-med) var(--ease);
+}
+.nav-links a:hover, .nav-links a.active { color: var(--primary); }
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+.nav-search {
+  display: flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border-med); padding: 0.35rem 0.8rem;
+  background: transparent; transition: border-color var(--t-fast);
+}
+.nav-search:focus-within { border-color: var(--accent); }
+.nav-search input {
+  border: none; background: transparent; outline: none;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text); width: 140px;
+}
+.nav-search input::placeholder { color: var(--text-muted); }
+.nav-search-icon { color: var(--text-muted); font-size: 0.75rem; }
+
+.nav-cta {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; border: 1px solid var(--primary);
+  color: var(--primary); padding: 0.45rem 1.1rem;
+  transition: background var(--t-fast), color var(--t-fast);
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--primary); color: var(--bg); }
+
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 4px;
+  cursor: pointer; padding: 4px;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--primary); transition: all var(--t-med);
+}
+
+/* ── BREADCRUMB ──────────────────────────────────── */
+.breadcrumb {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em;
+  color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.breadcrumb a { color: var(--accent); }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb-sep { opacity: 0.4; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer; transition: all var(--t-med) var(--ease);
+  border: none; background: none;
+}
+.btn-primary {
+  background: var(--primary); color: var(--bg);
+  padding: 0.75rem 1.8rem;
+}
+.btn-primary:hover {
+  background: var(--highlight);
+  box-shadow: 0 4px 16px rgba(90,79,207,0.3);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  border: 1px solid var(--border-strong); color: var(--primary);
+  padding: 0.75rem 1.8rem;
+}
+.btn-outline:hover {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(159,122,234,0.1);
+}
+.btn-ghost {
+  color: var(--text-muted); border-bottom: 1px solid var(--border-med);
+  padding-bottom: 2px; border-radius: 0;
+}
+.btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── SCIENTIFIC PANELS (replaces generic cards) ─── */
+.sci-panel {
+  border: 1px solid var(--border);
+  padding: 2rem 1.8rem;
+  background: var(--bg);
+  transition: border-color var(--t-med), box-shadow var(--t-med);
+  position: relative; overflow: hidden;
+}
+.sci-panel::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 2px; height: 0;
+  background: linear-gradient(180deg, var(--accent), var(--highlight));
+  transition: height var(--t-slow) var(--ease);
+}
+.sci-panel:hover::before { height: 100%; }
+.sci-panel:hover {
+  border-color: rgba(159,122,234,0.3);
+  box-shadow: var(--shadow-violet);
+}
+
+/* ── SECTION DIVIDERS ────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3; margin: var(--space-lg) 0;
+}
+.divider-molecule {
+  display: flex; align-items: center; gap: 1.2rem;
+  margin: var(--space-lg) 0; opacity: 0.3;
+}
+.divider-molecule::before, .divider-molecule::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent));
+}
+.divider-molecule::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.divider-molecule-icon {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--accent);
+}
+
+/* ── DID YOU KNOW BLOCKS ─────────────────────────── */
+.dyk-block {
+  border-left: 3px solid var(--accent);
+  padding: 1.2rem 1.6rem; background: rgba(159,122,234,0.06);
+  margin: 2rem 0; position: relative;
+}
+.dyk-block .dyk-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
+}
+.dyk-block p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* ── KEY INSIGHT ─────────────────────────────────── */
+.insight-block {
+  background: var(--primary); color: var(--bg);
+  padding: 2rem 2.5rem; position: relative; overflow: hidden;
+}
+.insight-block::before {
+  content: '"'; position: absolute; top: -1.5rem; left: 1.2rem;
+  font-family: var(--serif); font-size: 8rem; color: var(--accent);
+  opacity: 0.12; line-height: 1; pointer-events: none;
+}
+.insight-block .insight-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+}
+.insight-block .insight-text {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.25rem; line-height: 1.6; font-weight: 300;
+}
+
+/* ── QUICK SUMMARY PANEL ─────────────────────────── */
+.quick-summary {
+  border: 1px solid var(--border-med); padding: 1.6rem 2rem;
+  background: rgba(159,122,234,0.04); margin-bottom: 2.5rem;
+}
+.quick-summary-label {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;
+}
+.quick-summary-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border-med);
+}
+.quick-summary ul { list-style: none; }
+.quick-summary ul li {
+  font-size: 0.88rem; padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border); color: var(--text-muted);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+.quick-summary ul li::before {
+  content: '→'; font-family: var(--mono); font-size: 0.65rem;
+  color: var(--accent); flex-shrink: 0;
+}
+
+/* ── TOOLTIPS ────────────────────────────────────── */
+.tooltip {
+  position: relative; border-bottom: 1px dashed var(--accent);
+  cursor: help; display: inline-block;
+}
+.tooltip::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--primary); color: var(--bg);
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.04em;
+  white-space: nowrap; padding: 0.4rem 0.8rem;
+  pointer-events: none; opacity: 0;
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  z-index: 50;
+}
+.tooltip:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ── SCROLL REVEAL ───────────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity var(--t-slow) var(--ease-out),
+              transform var(--t-slow) var(--ease-out);
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── BACK TO TOP ─────────────────────────────────── */
+#back-to-top {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 100;
+  width: 42px; height: 42px;
+  background: var(--primary); color: var(--bg);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; opacity: 0; pointer-events: none;
+  transition: opacity var(--t-med), transform var(--t-med), background var(--t-fast);
+  transform: translateY(8px);
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; transform: none; }
+#back-to-top:hover { background: var(--highlight); transform: translateY(-2px); }
+
+/* ── FOOTER ──────────────────────────────────────── */
+#main-footer {
+  border-top: 1px solid var(--border-med);
+  padding: 4rem 0 2rem; background: var(--bg-alt);
+}
+.footer-grid {
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem;
+  margin-bottom: 2.5rem;
+}
+.footer-brand-name {
+  font-family: var(--serif); font-size: 1.2rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; display: block;
+  margin-bottom: 0.7rem;
+}
+.footer-brand p { font-size: 0.8rem; color: var(--text-muted); max-width: 26ch; }
+.footer-col h4 {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+}
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 0.5rem; }
+.footer-col ul a { font-size: 0.82rem; color: var(--text-muted); transition: color var(--t-fast); }
+.footer-col ul a:hover { color: var(--primary); }
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.5rem; border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted);
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+/* ── ATOMIC ORBIT ANIMATION ──────────────────────── */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(28px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(28px) rotate(-360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(20px) rotate(360deg); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(159,122,234,0); }
+  50% { box-shadow: 0 0 0 6px rgba(159,122,234,0.12); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links, .nav-search { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-links.open {
+    display: flex; flex-direction: column;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 1.5rem clamp(1.2rem, 5vw, 4rem);
+    gap: 1.2rem;
+  }
+  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* === INTERACTIONS === */
+/* ═══════════════════════════════════════════════════════
+   CHEMSPREAD · INTERACTIONS v3.0
+   Animation system, micro-interactions, particle canvas,
+   DYK engine, ripple, molecule hover, compound tags
+   ═══════════════════════════════════════════════════════ */
+
+/* ── ENHANCED REVEAL SYSTEM ────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.65s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.65s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* stagger children */
+.reveal-stagger > * {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity 0.55s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.55s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay: 0.13s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay: 0.21s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay: 0.29s; }
+.reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay: 0.37s; }
+.reveal-stagger.visible > *:nth-child(6) { opacity:1; transform:none; transition-delay: 0.45s; }
+
+/* ── PARTICLE CANVAS ───────────────────────────────── */
+#cs-particle-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; opacity: 0.35;
+}
+
+/* ── BUTTON UPGRADES ───────────────────────────────── */
+.btn-primary,
+.btn-outline,
+.btn,
+.calc-btn-run,
+.nav-cta {
+  position: relative; overflow: hidden;
+  transform: translateZ(0); /* GPU layer */
+}
+/* ripple */
+.ripple-wave {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0); animation: rippleAnim 0.55s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(3.5); opacity: 0; }
+}
+
+/* hover scale + glow */
+.btn-primary:hover,
+.calc-btn-run:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 22px rgba(90,79,207,0.32);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* ── SCI-PANEL HOVER LIFT ──────────────────────────── */
+.sci-panel {
+  transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1),
+              border-color 0.35s, box-shadow 0.35s;
+}
+.sci-panel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(90,79,207,0.14);
+}
+
+/* ── TEXT UNDERLINE GROW ───────────────────────────── */
+.ul-grow {
+  position: relative; display: inline-block;
+}
+.ul-grow::after {
+  content: ''; position: absolute; bottom: -1px; left: 0;
+  width: 0; height: 1px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1);
+}
+.ul-grow:hover::after { width: 100%; }
+
+/* ── DID-YOU-KNOW ENGINE ───────────────────────────── */
+.dyk-rotating {
+  position: relative; overflow: hidden;
+  min-height: 60px;
+}
+.dyk-rotating p {
+  position: absolute; inset: 0;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  padding-top: 2px;
+}
+.dyk-rotating p.dyk-active {
+  opacity: 1; transform: translateY(0);
+  position: relative;
+}
+.dyk-dots {
+  display: flex; gap: 5px; margin-top: 0.8rem;
+}
+.dyk-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border-strong); cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+}
+.dyk-dot.active { background: var(--accent); transform: scale(1.3); }
+
+/* ── MOLECULE CARD HOVER ───────────────────────────── */
+.mol-card {
+  transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1),
+              box-shadow 0.4s;
+}
+.mol-card:hover {
+  transform: rotate(1.5deg) translateY(-4px);
+  box-shadow: 0 10px 28px rgba(90,79,207,0.16);
+}
+.mol-card:hover .mol-bond { stroke: var(--accent); filter: drop-shadow(0 0 3px rgba(159,122,234,0.5)); }
+.mol-card:hover .mol-atom { fill: var(--highlight); }
+
+/* ── COMPOUND TAGS ─────────────────────────────────── */
+.tag-system { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.2rem 0; }
+.chem-tag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.28rem 0.65rem;
+  border: 1px solid var(--border-med); color: var(--text-muted);
+  cursor: pointer; transition: all 0.22s;
+  user-select: none;
+}
+.chem-tag:hover { border-color: var(--accent); color: var(--accent); }
+.chem-tag.tag-active {
+  background: var(--primary); color: var(--bg); border-color: var(--primary);
+}
+.chem-tag[data-tag="organic"]    { --tc: #9F7AEA; }
+.chem-tag[data-tag="inorganic"]  { --tc: #5A4FCF; }
+.chem-tag[data-tag="industrial"] { --tc: #B87333; }
+.chem-tag[data-tag="biological"] { --tc: #27AE60; }
+.chem-tag.tag-active { background: var(--tc,var(--primary)); border-color: var(--tc,var(--primary)); }
+
+/* ── ELEMENT COMPARISON PANEL ──────────────────────── */
+#compare-panel {
+  display: none; margin-top: 2rem;
+  border: 1px solid var(--border-med);
+  animation: fadeSlideUp 0.35s ease;
+  overflow: hidden;
+}
+#compare-panel.open { display: block; }
+
+.compare-header {
+  background: var(--primary); color: var(--bg);
+  padding: 0.9rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+}
+.compare-close {
+  cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+  background: none; border: none; color: var(--bg); font-size: 1rem;
+}
+.compare-close:hover { opacity: 1; }
+
+.compare-body {
+  display: grid; grid-template-columns: 1fr 60px 1fr;
+  gap: 0; background: var(--bg);
+}
+.compare-col {
+  padding: 1.8rem;
+}
+.compare-col:first-child { border-right: 1px solid var(--border); }
+.compare-col:last-child  { border-left: 1px solid var(--border); }
+.compare-vs {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 1.2rem; color: var(--text-muted);
+  font-style: italic;
+}
+.compare-symbol {
+  font-family: var(--serif); font-size: 3.5rem; font-weight: 700;
+  color: var(--primary); line-height: 1; margin-bottom: 0.2rem;
+}
+.compare-name {
+  font-family: var(--serif); font-size: 1.2rem; color: var(--primary); margin-bottom: 1rem;
+}
+.compare-row {
+  padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.83rem;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-key { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
+.compare-val { font-family: var(--serif); font-size: 1rem; color: var(--text); }
+.compare-bar-wrap { margin-top: 0.3rem; height: 3px; background: var(--border); }
+.compare-bar {
+  height: 100%; background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.8s cubic-bezier(0.25,0.8,0.25,1); width: 0;
+}
+
+/* compare select buttons on periodic table */
+.el-compare-btn {
+  position: absolute; top: 2px; right: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; z-index: 5;
+  transition: background 0.18s, border-color 0.18s;
+  display: none;
+}
+.el:hover .el-compare-btn { display: block; }
+.el-compare-btn:hover { background: var(--accent); border-color: var(--accent); }
+.el.compare-selected { background: rgba(159,122,234,0.12) !important; border-color: var(--accent) !important; }
+.el.compare-selected .el-compare-btn { display: block; background: var(--accent); border-color: var(--accent); }
+
+/* ── TREND CHARTS SECTION ──────────────────────────── */
+#trend-charts {
+  padding: 3rem 0 4rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.trend-tabs {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  margin-bottom: 2rem; width: fit-content;
+}
+.trend-tab {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.6rem 1.2rem;
+  cursor: pointer; border-right: 1px solid var(--border);
+  color: var(--text-muted); transition: all 0.2s;
+  background: var(--bg); border-radius: 0;
+}
+.trend-tab:last-child { border-right: none; }
+.trend-tab.active { background: var(--primary); color: var(--bg); }
+.trend-tab:hover:not(.active) { color: var(--primary); background: rgba(159,122,234,0.06); }
+
+.trend-chart-wrap {
+  position: relative; height: 320px;
+  border: 1px solid var(--border); background: var(--bg); padding: 1.5rem;
+}
+.trend-chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* ── REACTION FILTER ───────────────────────────────── */
+.reaction-filter { margin: 1.5rem 0; }
+.filter-group {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem;
+  align-items: center;
+}
+.filter-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase; min-width: 60px;
+}
+
+/* reaction cards */
+.reaction-card {
+  border: 1px solid var(--border); padding: 1.4rem 1.6rem; margin-bottom: 1px;
+  transition: all 0.3s ease; background: var(--bg);
+  position: relative; overflow: hidden;
+}
+.reaction-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform 0.35s ease;
+}
+.reaction-card:hover::before { transform: scaleY(1); }
+.reaction-card.hidden { display: none; }
+.reaction-card:hover { border-color: rgba(159,122,234,0.3); transform: translateX(4px); }
+
+.rc-formula { font-family: var(--mono); font-size: 0.85rem; color: var(--primary); margin-bottom: 0.4rem; }
+.rc-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.rc-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.rc-tag {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.18rem 0.5rem;
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+
+/* ── AMBIENT SOUND TOGGLE ──────────────────────────── */
+#sound-toggle {
+  position: fixed; bottom: 2rem; left: 2rem; z-index: 100;
+  width: 38px; height: 38px;
+  background: var(--bg-alt); border: 1px solid var(--border-med);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--text-muted);
+  transition: all 0.22s; border-radius: 50%;
+  opacity: 0.7;
+}
+#sound-toggle:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+#sound-toggle.sound-on { background: var(--primary); color: var(--bg); border-color: var(--primary); opacity: 1; }
+
+/* ── ELEMENT HOVER PREVIEW ─────────────────────────── */
+#el-hover-preview {
+  position: fixed; z-index: 500; pointer-events: none;
+  background: var(--primary); color: var(--bg);
+  padding: 0.8rem 1.1rem; border: 1px solid rgba(159,122,234,0.3);
+  max-width: 200px; min-width: 150px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.18s, transform 0.18s;
+  font-family: var(--mono);
+}
+#el-hover-preview.visible { opacity: 1; transform: translateY(0); }
+#el-hover-preview .ph-sym { font-family: var(--serif); font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1; }
+#el-hover-preview .ph-name { font-size: 0.75rem; margin: 0.2rem 0; }
+#el-hover-preview .ph-num { font-size: 0.6rem; opacity: 0.6; letter-spacing: 0.08em; }
+#el-hover-preview .ph-desc { font-size: 0.6rem; opacity: 0.7; margin-top: 0.4rem; line-height: 1.5; }
+
+/* ── SCROLL PROGRESS (thicker, brighter) ───────────── */
+#scroll-progress {
+  height: 3px !important;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--highlight)) !important;
+  box-shadow: 0 0 8px rgba(159,122,234,0.4);
+}
+
+/* ── BACK TO TOP (circular) ────────────────────────── */
+#back-to-top {
+  border-radius: 50% !important;
+  width: 44px !important; height: 44px !important;
+  box-shadow: var(--shadow-violet);
+  transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1) !important;
+}
+#back-to-top:hover { transform: translateY(-3px) scale(1.08) !important; }
+
+/* ── MOBILE REDUCTION ──────────────────────────────── */
+@media (max-width: 768px) {
+  #cs-particle-canvas { display: none; }
+  .sci-panel:hover { transform: none; }
+  .mol-card:hover { transform: none; }
+  .compare-body { grid-template-columns: 1fr; }
+  .compare-vs { display: none; }
+}
+
+/* ── KEYFRAMES ─────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
+
+</style>
+<style>
+body { padding-top:58px; }
+.page-hero { padding:3rem 0 1.5rem; border-bottom:1px solid var(--border); }
+
+/* ── TABS ── */
+.viz-tabs { display:flex; gap:0; border:1px solid var(--border); width:fit-content; margin:2rem 0 1.5rem; }
+.viz-tab {
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:.65rem 1.4rem; cursor:pointer; border-right:1px solid var(--border);
+  color:var(--text-muted); background:var(--bg); transition:all .2s; border-radius:0;
+  border-top:none; border-bottom:none; border-left:none;
+}
+.viz-tab:last-child { border-right:none; }
+.viz-tab.active { background:var(--primary); color:var(--bg); }
+
+/* ── CANVAS AREA ── */
+.viz-layout { display:grid; grid-template-columns:1fr 320px; gap:3rem; align-items:start; }
+.canvas-wrap { position:relative; border:1px solid var(--border); background:var(--bg-alt); }
+#viz-canvas { display:block; width:100%; }
+.canvas-controls { display:flex; gap:.7rem; padding:.8rem 1rem; border-top:1px solid var(--border); flex-wrap:wrap; }
+.ctrl-btn {
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase;
+  padding:.38rem .85rem; border:1px solid var(--border-med); color:var(--text-muted);
+  background:var(--bg); cursor:pointer; transition:all .18s;
+}
+.ctrl-btn:hover { border-color:var(--accent); color:var(--accent); }
+.ctrl-btn.active-ctrl { background:var(--primary); color:var(--bg); border-color:var(--primary); }
+
+/* ── SIDE PANEL ── */
+.viz-info { border:1px solid var(--border); }
+.viz-info-head { background:var(--primary); color:var(--bg); padding:1rem 1.2rem; }
+.viz-info-head h3 { font-size:1.2rem; margin:0; }
+.viz-info-head .sub { font-family:var(--mono); font-size:.6rem; opacity:.6; margin-top:.2rem; letter-spacing:.08em; }
+.viz-info-body { padding:1.2rem; }
+.info-section { margin-bottom:1.2rem; padding-bottom:1.2rem; border-bottom:1px solid var(--border); }
+.info-section:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+.info-label { font-family:var(--mono); font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:.4rem; }
+.info-text { font-size:.82rem; color:var(--text-muted); line-height:1.7; }
+.info-formula { font-family:var(--mono); font-size:.82rem; color:var(--primary); padding:.5rem .7rem; border-left:2px solid var(--accent); background:rgba(90,79,207,.05); margin:.5rem 0; }
+.why-box { background:rgba(45,27,105,.06); border:1px solid var(--border-med); padding:1rem 1.1rem; margin-top:.8rem; }
+.why-label { font-family:var(--mono); font-size:.56rem; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:.4rem; }
+.mistake-box { background:rgba(192,57,43,.05); border-left:3px solid #C0392B; padding:.8rem 1rem; margin-top:.8rem; }
+.mistake-label { font-family:var(--mono); font-size:.56rem; letter-spacing:.1em; text-transform:uppercase; color:#C0392B; margin-bottom:.3rem; }
+
+/* ── MOLECULE SELECTOR ── */
+.mol-selector { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; margin-bottom:1.5rem; }
+.mol-btn {
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.06em;
+  padding:.5rem .6rem; border:1px solid var(--border-med); color:var(--text-muted);
+  background:var(--bg); cursor:pointer; transition:all .18s; text-align:center;
+}
+.mol-btn:hover { border-color:var(--accent); color:var(--accent); }
+.mol-btn.selected { background:var(--primary); color:var(--bg); border-color:var(--primary); }
+
+/* ── ENERGY DIAGRAM ── */
+.energy-diagram { border:1px solid var(--border); padding:1.4rem; background:var(--bg-alt); margin-top:1.5rem; }
+.energy-label { font-family:var(--mono); font-size:.6rem; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:.8rem; }
+#energy-canvas { width:100%; border:none; }
+
+/* ── KNOWLEDGE CONNECTIONS ── */
+.connections-section { margin-top:2rem; padding:1.5rem 1.8rem; border:1px solid var(--border); background:var(--bg-alt); }
+.connections-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-top:1rem; }
+.conn-pill {
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.06em; text-transform:uppercase;
+  padding:.38rem .7rem; border:1px solid var(--border-med); color:var(--text-muted);
+  text-align:center; transition:all .2s; text-decoration:none; display:block;
+}
+.conn-pill:hover { border-color:var(--accent); color:var(--accent); background:rgba(159,122,234,.06); }
+
+/* ── COMPARISON TABLE ── */
+.bond-comparison { margin-top:2rem; border:1px solid var(--border); overflow:hidden; }
+.bc-head { display:grid; grid-template-columns:1fr 1fr 1fr; background:var(--primary); color:var(--bg); }
+.bc-head div { padding:.7rem 1rem; font-family:var(--mono); font-size:.6rem; letter-spacing:.1em; text-transform:uppercase; border-right:1px solid rgba(255,255,255,.1); }
+.bc-row { display:grid; grid-template-columns:1fr 1fr 1fr; border-bottom:1px solid var(--border); }
+.bc-row div { padding:.7rem 1rem; font-size:.82rem; border-right:1px solid var(--border); }
+.bc-row div:first-child { font-family:var(--mono); font-size:.7rem; color:var(--text-muted); }
+.bc-row:nth-child(even) { background:var(--bg-alt); }
+.bc-row:last-child { border-bottom:none; }
+
+@media(max-width:900px) { .viz-layout{grid-template-columns:1fr;} .connections-grid{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">/</span><span>Bonding Visualizer</span></div>
+    <span class="label">Hero Feature · Interactive · Conceptual</span>
+    <h1 style="margin-top:.4rem">Chemical Bonding Visualizer</h1>
+    <p class="body-lg" style="margin-top:.4rem;max-width:58ch">Watch ionic and covalent bonding happen in real time. Understand WHY each bond type forms, what drives electron transfer or sharing, and how it determines molecular properties.</p>
+  </div>
+</div>
+
+<div style="padding:2rem 0 5rem">
+<div class="container">
+
+<!-- QUICK SUMMARY -->
+<div class="quick-summary reveal">
+  <div class="quick-summary-label">Key Takeaways</div>
+  <ul>
+    <li>Ionic bonds form by electron TRANSFER — metal gives electrons to non-metal (electronegativity difference &gt; 1.7)</li>
+    <li>Covalent bonds form by electron SHARING — both atoms pull on the same pair of electrons</li>
+    <li>Bond polarity depends on electronegativity difference; molecule polarity depends on geometry too</li>
+    <li>Bond type determines melting point, conductivity, solubility, and reactivity</li>
+    <li>All bonding is a spectrum — no bond is 100% ionic or 100% covalent</li>
+  </ul>
+</div>
+
+<!-- VIZ TABS -->
+<div class="viz-tabs">
+  <button class="viz-tab active" onclick="switchMode('ionic',this)">⚡ Ionic Bonding</button>
+  <button class="viz-tab" onclick="switchMode('covalent',this)">🔗 Covalent Bonding</button>
+  <button class="viz-tab" onclick="switchMode('metallic',this)">✨ Metallic Bonding</button>
+  <button class="viz-tab" onclick="switchMode('comparison',this)">📊 Comparison</button>
+</div>
+
+<div class="viz-layout">
+  <!-- CANVAS -->
+  <div>
+    <!-- Molecule selector (covalent mode) -->
+    <div id="mol-sel" class="mol-selector" style="display:none">
+      <button class="mol-btn selected" onclick="selectMol('H2O',this)">H₂O · Water</button>
+      <button class="mol-btn" onclick="selectMol('CO2',this)">CO₂ · Carbon dioxide</button>
+      <button class="mol-btn" onclick="selectMol('NH3',this)">NH₃ · Ammonia</button>
+      <button class="mol-btn" onclick="selectMol('CH4',this)">CH₄ · Methane</button>
+      <button class="mol-btn" onclick="selectMol('HCl',this)">HCl · Hydrogen chloride</button>
+      <button class="mol-btn" onclick="selectMol('N2',this)">N₂ · Nitrogen (triple)</button>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="viz-canvas" height="380"></canvas>
+      <div class="canvas-controls">
+        <button class="ctrl-btn active-ctrl" id="btn-animate" onclick="toggleAnim()">⏸ Pause</button>
+        <button class="ctrl-btn" onclick="resetViz()">↺ Reset</button>
+        <button class="ctrl-btn" id="btn-labels" onclick="toggleLabels()">🏷 Labels ON</button>
+        <button class="ctrl-btn" id="btn-slow" onclick="toggleSpeed()">🐢 Slow</button>
+        <span id="viz-step" style="font-family:var(--mono);font-size:.65rem;color:var(--text-muted);align-self:center;margin-left:.3rem"></span>
+      </div>
+    </div>
+
+    <!-- Comparison table (comparison mode) -->
+    <div id="comparison-table" class="bond-comparison reveal" style="display:none">
+      <div class="bc-head"><div>Property</div><div>Ionic Bond</div><div>Covalent Bond</div></div>
+      <div class="bc-row"><div>Formation</div><div>Electron TRANSFER</div><div>Electron SHARING</div></div>
+      <div class="bc-row"><div>Electronegativity diff.</div><div>&gt; 1.7 (large)</div><div>&lt; 1.7 (small)</div></div>
+      <div class="bc-row"><div>Between</div><div>Metal + Non-metal</div><div>Non-metals</div></div>
+      <div class="bc-row"><div>Melting point</div><div>HIGH (801°C for NaCl)</div><div>LOW-MED (e.g. -183°C O₂)</div></div>
+      <div class="bc-row"><div>Conducts electricity</div><div>Only molten/dissolved</div><div>Never (usually)</div></div>
+      <div class="bc-row"><div>Solubility (water)</div><div>Usually soluble</div><div>Varies (polar: yes; non-polar: no)</div></div>
+      <div class="bc-row"><div>Structure</div><div>Giant ionic lattice</div><div>Simple or giant covalent</div></div>
+      <div class="bc-row"><div>Examples</div><div>NaCl, MgO, CaCl₂</div><div>H₂O, CO₂, SiO₂, C (diamond)</div></div>
+      <div class="bc-row"><div>Bond direction</div><div>Non-directional (spherical)</div><div>Directional (fixed angle)</div></div>
+    </div>
+  </div>
+
+  <!-- SIDE INFO PANEL -->
+  <div>
+    <div class="viz-info">
+      <div class="viz-info-head">
+        <h3 id="info-title">Ionic Bonding</h3>
+        <div class="sub" id="info-sub">Example: Sodium Chloride (NaCl)</div>
+      </div>
+      <div class="viz-info-body">
+        <div class="info-section">
+          <div class="info-label">What happens</div>
+          <div class="info-text" id="info-what">A metal atom loses one or more electrons to become a positive ion (cation). A non-metal atom gains those electrons to become a negative ion (anion). The opposite charges attract strongly.</div>
+        </div>
+        <div class="info-section">
+          <div class="info-label">Why it happens</div>
+          <div class="why-box">
+            <div class="why-label">The WHY</div>
+            <div class="info-text" id="info-why">Na has 1 valence electron (weakly held — low ionisation energy). Cl needs 1 electron to complete its octet (high electron affinity). The overall energy change is highly negative — thermodynamically very favourable. ΔH_lattice for NaCl ≈ -787 kJ/mol.</div>
+          </div>
+        </div>
+        <div class="info-section">
+          <div class="info-label">Key formula</div>
+          <div class="info-formula" id="info-formula">Na → Na⁺ + e⁻ &nbsp;(ionisation)<br/>Cl + e⁻ → Cl⁻ &nbsp;(electron gain)<br/>Na⁺ + Cl⁻ → NaCl &nbsp;(lattice forms)</div>
+        </div>
+        <div class="info-section">
+          <div class="info-label">Properties it causes</div>
+          <div class="info-text" id="info-props">High melting point (strong lattice forces), conducts only when molten/dissolved (ions must be mobile), brittle (ion layers slide — same charges align and repel), soluble in polar solvents like water.</div>
+        </div>
+        <div class="mistake-box">
+          <div class="mistake-label">⚠ Common Mistake</div>
+          <div class="info-text" id="info-mistake">NaCl does NOT contain molecules — it has no discrete NaCl units. It's a giant ionic lattice where each Na⁺ is surrounded by 6 Cl⁻ and vice versa. The formula unit NaCl shows the simplest ratio, not a molecule.</div>
+        </div>
+        <div style="margin-top:1rem">
+          <div class="info-label">Real-world relevance</div>
+          <div class="info-text" id="info-real">NaCl regulates nerve impulse transmission. Na⁺ influx depolarises the neuron membrane — every thought, heartbeat, and muscle movement depends on ionic gradients.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ENERGY DIAGRAM -->
+<div class="energy-diagram reveal" style="margin-top:2rem">
+  <div class="energy-label" id="energy-title">Ionic Bond — Energy Profile (Born-Haber Concept)</div>
+  <canvas id="energy-canvas" height="180"></canvas>
+  <p id="energy-note" style="font-family:var(--mono);font-size:.65rem;color:var(--text-muted);margin-top:.6rem">The lattice energy (−787 kJ/mol for NaCl) is the dominant energy release — it makes ionic bond formation highly thermodynamically favourable overall.</p>
+</div>
+
+<!-- CONCEPT CONNECTIONS -->
+<div class="connections-section reveal">
+  <div class="label">Concept Connections — where bonding links to</div>
+  <div class="connections-grid" id="conn-grid">
+    <a class="conn-pill" href="topics.html#atomic">⚛ Atomic Structure</a>
+    <a class="conn-pill" href="topics.html#thermo">🔥 Lattice Energy</a>
+    <a class="conn-pill" href="molecules.html">📐 Molecular Geometry</a>
+    <a class="conn-pill" href="periodic-table.html">📋 Electronegativity</a>
+    <a class="conn-pill" href="compounds.html">⚗ Key Compounds</a>
+    <a class="conn-pill" href="topics.html#matter">💧 States of Matter</a>
+    <a class="conn-pill" href="reactions.html">⚡ Reactivity</a>
+    <a class="conn-pill" href="data-tables.html">📊 Bond Enthalpies</a>
+    <a class="conn-pill" href="topics.html#organic">🧬 Organic Bonding</a>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script src="js/elements.js"></script>
+<script src="js/compounds.js"></script>
+<script src="js/reactions.js"></script>
+<script src="js/knowledge-graph.js"></script>
+<script src="js/components.js"></script>
+<script src="js/interactions.js"></script>
+
+<script>
+/* ════════════════════════════════════════════════════
+   BONDING VISUALIZER ENGINE
+════════════════════════════════════════════════════ */
+
+const canvas  = document.getElementById('viz-canvas');
+const ctx     = canvas.getContext('2d');
+const eCanvas = document.getElementById('energy-canvas');
+const eCtx    = eCanvas.getContext('2d');
+
+let mode         = 'ionic';
+let animRunning  = true;
+let showLabels   = true;
+let slowMode     = false;
+let animFrame    = 0;
+let curMol       = 'H2O';
+let rafId;
+
+// ── RESIZE CANVAS ──
+function resizeCanvas() {
+  canvas.width  = canvas.offsetWidth;
+  eCanvas.width = eCanvas.offsetWidth;
+}
+window.addEventListener('resize', () => { resizeCanvas(); });
+resizeCanvas();
+
+// ── SWITCH MODE ──
+function switchMode(m, btn) {
+  mode = m;
+  animFrame = 0;
+  document.querySelectorAll('.viz-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('mol-sel').style.display = (m === 'covalent') ? 'grid' : 'none';
+  document.getElementById('comparison-table').style.display = (m === 'comparison') ? 'block' : 'none';
+  updateInfoPanel();
+  drawEnergy();
+}
+
+// ── MOLECULE SELECTION ──
+function selectMol(mol, btn) {
+  curMol = mol;
+  document.querySelectorAll('.mol-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  animFrame = 0;
+}
+
+// ── CONTROLS ──
+function toggleAnim() {
+  animRunning = !animRunning;
+  document.getElementById('btn-animate').textContent = animRunning ? '⏸ Pause' : '▶ Play';
+  document.getElementById('btn-animate').classList.toggle('active-ctrl', animRunning);
+  if (animRunning) loop();
+}
+function resetViz() { animFrame = 0; }
+function toggleLabels() {
+  showLabels = !showLabels;
+  document.getElementById('btn-labels').textContent = showLabels ? '🏷 Labels ON' : '🏷 Labels OFF';
+}
+function toggleSpeed() {
+  slowMode = !slowMode;
+  document.getElementById('btn-slow').textContent = slowMode ? '🐢 Slow ON' : '🐢 Slow';
+  document.getElementById('btn-slow').classList.toggle('active-ctrl', slowMode);
+}
+
+// ── COLOR UTILS ──
+const VIOLET = '#5A4FCF', ACCENT = '#9F7AEA', DARK = '#2D1B69';
+const RED = '#C0392B', ORANGE = '#E67E22', GREEN = '#27AE60', BLUE = '#2980B9', YELLOW = '#F1C40F';
+
+// ── DRAW ATOM ──
+function drawAtom(x, y, r, color, symbol, charge, shell, showLabel) {
+  // Shell
+  if (shell) {
+    ctx.beginPath(); ctx.arc(x, y, r + shell * 10, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(90,79,207,.15)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+  // Nucleus
+  const grad = ctx.createRadialGradient(x-r*.3, y-r*.3, r*.1, x, y, r);
+  grad.addColorStop(0, lighten(color, 40));
+  grad.addColorStop(1, color);
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.strokeStyle = darken(color, 20); ctx.lineWidth = 1.5; ctx.stroke();
+  // Symbol
+  if (showLabel) {
+    ctx.font = `bold ${Math.round(r*.85)}px 'Cormorant Garamond', serif`;
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(symbol, x, y);
+  }
+  // Charge
+  if (charge && showLabel) {
+    ctx.font = `bold 11px 'JetBrains Mono', monospace`;
+    ctx.fillStyle = charge.includes('+') ? ORANGE : '#5DADE2';
+    ctx.fillText(charge, x + r*.75, y - r*.75);
+  }
+}
+
+function lighten(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, (n >> 16) + amt);
+  const g = Math.min(255, ((n >> 8) & 0xff) + amt);
+  const b = Math.min(255, (n & 0xff) + amt);
+  return `rgb(${r},${g},${b})`;
+}
+function darken(hex, amt) { return lighten(hex, -amt); }
+
+// ── ELECTRON ──
+function drawElectron(x, y, r, color) {
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = color || ACCENT;
+  ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = .8; ctx.stroke();
+}
+
+// ── BOND LINE ──
+function drawBond(x1, y1, x2, y2, n, color) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx*dx+dy*dy);
+  const ux = dy/len, uy = -dx/len;
+  const offsets = n===1 ? [0] : n===2 ? [-4,4] : [-6,0,6];
+  ctx.strokeStyle = color || DARK;
+  ctx.lineWidth = 2.5;
+  offsets.forEach(o => {
+    ctx.beginPath();
+    ctx.moveTo(x1 + ux*o, y1 + uy*o);
+    ctx.lineTo(x2 + ux*o, y2 + uy*o);
+    ctx.stroke();
+  });
+}
+
+// ── LABEL ──
+function drawLabel(x, y, text, color, size) {
+  if (!showLabels) return;
+  ctx.font = `${size||11}px 'JetBrains Mono', monospace`;
+  ctx.fillStyle = color || DARK;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText(text, x, y);
+}
+
+// ── IONIC ANIMATION ──
+let ionicPhase = 0;
+function drawIonic(t) {
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  ctx.clearRect(0, 0, W, H);
+
+  // phase: 0=approaching, 1=transfer, 2=ions formed, 3=lattice
+  const speed = slowMode ? .004 : .012;
+  ionicPhase = (ionicPhase + speed) % 4;
+
+  const p = ionicPhase;
+
+  if (p < 1) {
+    // Approaching
+    const d = 160 - p * 80;
+    const prog = Math.min(p * 3, 1);
+
+    drawAtom(cx - d, cy, 32, '#C0392B', 'Na', null, 2, false);
+    drawAtom(cx + d, cy, 28, '#9F7AEA', 'Cl', null, 2, false);
+
+    // Valence electron on Na
+    const eAngle = t * (slowMode ? 1 : 3);
+    const ex = cx - d + 40 * Math.cos(eAngle);
+    const ey = cy + 40 * Math.sin(eAngle);
+    drawElectron(ex, ey, 5, ACCENT);
+
+    if (showLabels) {
+      drawLabel(cx - d, cy + 48, 'Na  (2,8,1)', '#C0392B', 11);
+      drawLabel(cx + d, cy + 44, 'Cl  (2,8,7)', VIOLET, 11);
+      drawLabel(cx, cy - 90, p < 0.5 ? 'Atoms approaching…' : 'Electron about to transfer', DARK, 12);
+    }
+    document.getElementById('viz-step').textContent = 'Phase 1: Atoms approaching';
+
+  } else if (p < 2) {
+    // Electron transfer
+    const prog = p - 1;
+    const ex = (cx - 120) + prog * 220;
+    const ey = cy - 30 * Math.sin(Math.PI * prog);
+
+    drawAtom(cx - 120, cy, 32, '#C0392B', 'Na', prog > 0.7 ? 'Na⁺' : '', 2, false);
+    drawAtom(cx + 120, cy, 28, '#9F7AEA', 'Cl', prog > 0.7 ? 'Cl⁻' : '', 2, false);
+    drawElectron(ex, ey, 6, '#F1C40F');
+
+    // Arrow
+    ctx.beginPath(); ctx.moveTo(cx - 80, cy - 50); ctx.lineTo(cx + 80, cy - 50);
+    ctx.strokeStyle = ACCENT; ctx.lineWidth = 1.5; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = ACCENT; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('→', cx + 90, cy - 50);
+
+    if (showLabels) {
+      drawLabel(cx, cy + 80, '⚡ Electron transferring from Na to Cl', YELLOW, 12);
+      drawLabel(cx, cy - 90, 'Ionisation energy of Na < Electron affinity of Cl', DARK, 11);
+    }
+    document.getElementById('viz-step').textContent = 'Phase 2: Electron transfer';
+
+  } else if (p < 3) {
+    // Ions formed
+    const pulse = 1 + .05 * Math.sin(t * 4);
+    drawAtom(cx - 130, cy, 28 * pulse, '#C0392B', 'Na⁺', null, 0, true);
+    drawAtom(cx + 130, cy, 34 * pulse, VIOLET, 'Cl⁻', null, 0, true);
+
+    // Attraction arrow
+    const al = 50 + 15*Math.sin(t*3);
+    ctx.beginPath(); ctx.moveTo(cx - 80, cy); ctx.lineTo(cx + 80, cy);
+    ctx.strokeStyle = GREEN; ctx.lineWidth = 2.5; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+    if (showLabels) {
+      drawLabel(cx, cy - 20, 'Electrostatic attraction', GREEN, 11);
+      drawLabel(cx - 130, cy + 52, 'Na⁺  lost 1e⁻', '#C0392B', 10);
+      drawLabel(cx + 130, cy + 52, 'Cl⁻  gained 1e⁻', VIOLET, 10);
+      drawLabel(cx, cy - 90, '✓ Ion pair formed  ΔH = −787 kJ/mol (lattice)', DARK, 12);
+    }
+    document.getElementById('viz-step').textContent = 'Phase 3: Ions formed';
+
+  } else {
+    // Lattice
+    const rows = 3, cols = 5;
+    const sp = 60;
+    const ox = cx - (cols-1)*sp/2;
+    const oy = cy - (rows-1)*sp/2;
+    const pulse = 1 + .02*Math.sin(t*2);
+    for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) {
+      const x = ox + c*sp, y = oy + r*sp;
+      const isNa = (r+c)%2===0;
+      drawAtom(x, y, 18*pulse, isNa?'#C0392B':VIOLET, isNa?'Na⁺':'Cl⁻', null, 0, true);
+      // Bond lines
+      if (c<cols-1) drawBond(x+20, y, x+sp-20, y, 1, 'rgba(45,27,105,.2)');
+      if (r<rows-1) drawBond(x, y+20, x, y+sp-20, 1, 'rgba(45,27,105,.2)');
+    }
+    if (showLabels) {
+      drawLabel(cx, oy - 30, 'NaCl Giant Ionic Lattice  (each ion surrounded by 6 oppositely charged)', DARK, 11);
+      drawLabel(cx, oy + rows*sp + 10, 'Melting point 801°C — all lattice bonds must break simultaneously', '#C0392B', 10);
+    }
+    document.getElementById('viz-step').textContent = 'Phase 4: Giant ionic lattice';
+  }
+}
+
+// ── COVALENT ANIMATION ──
+const MOL_DATA = {
+  H2O:  { name:"Water", polar:true,  shape:"bent",     angle:"104.5°", bonds:[{type:1,label:"O-H δ+"}], atoms:[ {sym:"O",col:"#8E44AD",r:28,x:0,y:0}, {sym:"H",col:"#2980B9",r:18,x:-55,y:45}, {sym:"H",col:"#2980B9",r:18,x:55,y:45} ], pairs:[ [0,1,1],[0,2,1] ], lone:[ {a:0,angle:[-50,-130]} ] },
+  CO2:  { name:"Carbon dioxide", polar:false, shape:"linear",   angle:"180°",  bonds:[], atoms:[ {sym:"C",col:GREEN,r:24,x:0,y:0}, {sym:"O",col:RED,r:26,x:-85,y:0}, {sym:"O",col:RED,r:26,x:85,y:0} ], pairs:[ [0,1,2],[0,2,2] ], lone:[] },
+  NH3:  { name:"Ammonia",        polar:true,  shape:"trig. pyramidal", angle:"107°", bonds:[], atoms:[ {sym:"N",col:VIOLET,r:26,x:0,y:-10}, {sym:"H",col:BLUE,r:16,x:-55,y:45}, {sym:"H",col:BLUE,r:16,x:55,y:45}, {sym:"H",col:BLUE,r:16,x:0,y:70} ], pairs:[ [0,1,1],[0,2,1],[0,3,1] ], lone:[ {a:0,angle:[-90]} ] },
+  CH4:  { name:"Methane",        polar:false, shape:"tetrahedral", angle:"109.5°", bonds:[], atoms:[ {sym:"C",col:GREEN,r:26,x:0,y:0}, {sym:"H",col:BLUE,r:16,x:-60,y:-40}, {sym:"H",col:BLUE,r:16,x:60,y:-40}, {sym:"H",col:BLUE,r:16,x:-60,y:55}, {sym:"H",col:BLUE,r:16,x:60,y:55} ], pairs:[ [0,1,1],[0,2,1],[0,3,1],[0,4,1] ], lone:[] },
+  HCl:  { name:"Hydrogen chloride", polar:true, shape:"linear", angle:"—", bonds:[], atoms:[ {sym:"H",col:BLUE,r:18,x:-60,y:0}, {sym:"Cl",col:ACCENT,r:30,x:60,y:0} ], pairs:[ [0,1,1] ], lone:[ {a:1,angle:[90,0,-90]} ] },
+  N2:   { name:"Nitrogen (N₂)",  polar:false, shape:"linear",   angle:"180°", bonds:[], atoms:[ {sym:"N",col:VIOLET,r:24,x:-50,y:0}, {sym:"N",col:VIOLET,r:24,x:50,y:0} ], pairs:[ [0,1,3] ], lone:[ {a:0,angle:[180]},{a:1,angle:[0]} ] },
+};
+
+function drawCovalent(t) {
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2 + 10;
+  ctx.clearRect(0, 0, W, H);
+
+  const mol = MOL_DATA[curMol];
+  if (!mol) return;
+
+  // Draw bonds first
+  mol.pairs.forEach(([i,j,n]) => {
+    const a = mol.atoms[i], b = mol.atoms[j];
+    drawBond(cx+a.x, cy+a.y, cx+b.x, cy+b.y, n, DARK);
+  });
+
+  // Electron sharing animation
+  const shareT = (Math.sin(t * (slowMode?.8:2)) + 1) / 2; // 0→1 oscillation
+  mol.pairs.forEach(([i,j]) => {
+    const a = mol.atoms[i], b = mol.atoms[j];
+    const ex = (cx+a.x) + shareT * ((cx+b.x) - (cx+a.x));
+    const ey = (cy+a.y) + shareT * ((cy+b.y) - (cy+a.y));
+    drawElectron(ex - 5, ey - 5, 4, YELLOW);
+    drawElectron(ex + 5, ey + 5, 4, ORANGE);
+  });
+
+  // Draw atoms
+  mol.atoms.forEach(a => {
+    drawAtom(cx+a.x, cy+a.y, a.r, a.col, a.sym, null, 0, true);
+  });
+
+  // Lone pairs
+  mol.lone.forEach(lp => {
+    const a = mol.atoms[lp.a];
+    lp.angle.forEach(deg => {
+      const rad = deg * Math.PI / 180;
+      const lpx = cx + a.x + (a.r+12) * Math.cos(rad);
+      const lpy = cy + a.y + (a.r+12) * Math.sin(rad);
+      drawElectron(lpx-4, lpy, 3.5, '#888');
+      drawElectron(lpx+4, lpy, 3.5, '#888');
+    });
+  });
+
+  // Dipole arrow for polar molecules
+  if (mol.polar && showLabels) {
+    ctx.beginPath(); ctx.moveTo(cx-30, cy-70); ctx.lineTo(cx+30, cy-70);
+    ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = RED; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('δ−', cx-35, cy-72); ctx.fillText('δ+', cx+38, cy-72);
+    drawLabel(cx, cy-88, '⟵ Net dipole (polar molecule)', RED, 11);
+  }
+
+  if (showLabels) {
+    drawLabel(cx, cy-110, `${mol.name}  |  Shape: ${mol.shape}  |  Bond angle: ${mol.angle}`, DARK, 12);
+    drawLabel(cx, cy+90, `Polar: ${mol.polar ? 'YES — net dipole moment' : 'NO — dipoles cancel or absent'}`, mol.polar ? RED : GREEN, 11);
+    drawLabel(cx, cy+108, '● Shared pairs (yellow/orange oscillating)   ○ Lone pairs (grey)', '#888', 10);
+  }
+  document.getElementById('viz-step').textContent = `${curMol}: ${mol.shape}`;
+}
+
+// ── METALLIC ANIMATION ──
+function drawMetallic(t) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid of positive metal ions
+  const rows = 3, cols = 5, sp = 80;
+  const ox = W/2 - (cols-1)*sp/2;
+  const oy = H/2 - (rows-1)*sp/2;
+
+  // Delocalised electron cloud
+  ctx.fillStyle = 'rgba(90,79,207,.06)';
+  ctx.fillRect(ox-40, oy-40, (cols-1)*sp+80, (rows-1)*sp+80);
+
+  // Cations
+  for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) {
+    const x=ox+c*sp, y=oy+r*sp;
+    const pulse = 1+.04*Math.sin(t*2+r*1.2+c*0.8);
+    drawAtom(x, y, 22*pulse, '#E67E22', 'Cu⁺', null, 0, showLabels);
+  }
+
+  // Free electrons moving randomly
+  const ne = 20;
+  for (let i=0;i<ne;i++) {
+    const angle = (t*(slowMode?.4:1.2) + i*Math.PI*2/ne);
+    const rx = Math.cos(angle*1.3+i) * (W*.3);
+    const ry = Math.sin(angle*0.9+i*1.4) * (H*.25);
+    const ex = W/2 + rx;
+    const ey = H/2 + ry;
+    if (ex>ox-35&&ex<ox+(cols-1)*sp+35&&ey>oy-35&&ey<oy+(rows-1)*sp+35) {
+      drawElectron(ex, ey, 4, ACCENT);
+    }
+  }
+
+  if (showLabels) {
+    ctx.fillStyle='rgba(90,79,207,.1)';
+    ctx.fillRect(ox-35, oy-35, (cols-1)*sp+70, (rows-1)*sp+70);
+    drawLabel(W/2, oy-55, 'Metallic Bonding — Copper (Cu)', DARK, 13);
+    drawLabel(W/2, oy+(rows-1)*sp+50, '🔵 Free (delocalised) electrons — "sea of electrons" — move freely through lattice', VIOLET, 11);
+    drawLabel(W/2, oy+(rows-1)*sp+68, 'This explains: electrical conductivity, thermal conductivity, and malleability', DARK, 10);
+  }
+  document.getElementById('viz-step').textContent = 'Metallic: delocalised electron sea';
+}
+
+// ── COMPARISON MODE ──
+function drawComparison(t) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const mid = W/2;
+  // Left: ionic
+  ctx.save(); ctx.translate(mid/2, H/2); drawIonicMini(t, ctx); ctx.restore();
+  // Right: covalent
+  ctx.save(); ctx.translate(mid+mid/2, H/2); drawCovalentMini(t, ctx); ctx.restore();
+  // Divider
+  ctx.beginPath(); ctx.moveTo(mid, 30); ctx.lineTo(mid, H-30);
+  ctx.strokeStyle='rgba(45,27,105,.15)'; ctx.lineWidth=1; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+  if (showLabels) {
+    drawLabel(mid/2, 20, 'IONIC BONDING', RED, 12);
+    drawLabel(mid+mid/2, 20, 'COVALENT BONDING', VIOLET, 12);
+  }
+}
+function drawIonicMini(t, c) {
+  const p = 1+.04*Math.sin(t*2);
+  drawAtom(-50, 0, 22*p, RED, 'Na⁺', null, 0, showLabels);
+  drawAtom(50,  0, 26*p, VIOLET, 'Cl⁻', null, 0, showLabels);
+  c.beginPath(); c.moveTo(-25,0); c.lineTo(25,0); c.strokeStyle=GREEN; c.lineWidth=2.5; c.setLineDash([5,4]); c.stroke(); c.setLineDash([]);
+  if (showLabels) drawLabel(0, 50, 'Electron TRANSFER', RED, 10);
+}
+function drawCovalentMini(t, c) {
+  const share = (Math.sin(t*2)+1)/2;
+  drawBond(-45, 0, 45, 0, 2, DARK);
+  const ex = -45 + share*90;
+  drawElectron(ex-4, -4, 4, YELLOW);
+  drawElectron(ex+4, 4, 4, ORANGE);
+  drawAtom(-50, 0, 24, GREEN, 'O', null, 0, showLabels);
+  drawAtom(50, 0, 18, BLUE, 'H', null, 0, showLabels);
+  if (showLabels) drawLabel(0, 50, 'Electron SHARING', VIOLET, 10);
+}
+
+// ── ENERGY DIAGRAM ──
+function drawEnergy() {
+  const W = eCanvas.offsetWidth || 600;
+  eCanvas.width = W;
+  const H = eCanvas.height;
+  eCtx.clearRect(0, 0, W, H);
+
+  const configs = {
+    ionic:    { reactant:140, peak:40, product:30, label:'NaCl formation', note:'Lattice energy dominates — overall exothermic', col:RED },
+    covalent: { reactant:120, peak:50, product:70, label:'H₂ covalent bond', note:'Sharing lowers energy — stable bond formed', col:VIOLET },
+    metallic: { reactant:130, peak:80, product:50, label:'Cu metallic bonding', note:'Delocalised electrons lower total energy', col:ORANGE },
+    comparison:{ reactant:130, peak:50, product:60, label:'General bonding', note:'Bond formation always lowers total energy', col:GREEN },
+  };
+  const cfg = configs[mode] || configs.ionic;
+
+  // Axes
+  eCtx.strokeStyle = '#ccc'; eCtx.lineWidth = 1;
+  eCtx.beginPath(); eCtx.moveTo(40, 10); eCtx.lineTo(40, H-25); eCtx.lineTo(W-10, H-25); eCtx.stroke();
+
+  // Curve
+  const pts = [
+    [60, H - cfg.reactant - 25],
+    [W*.25, H - cfg.reactant - 25],
+    [W*.42, H - cfg.peak - 25],
+    [W*.65, H - cfg.product - 25],
+    [W*.85, H - cfg.product - 25],
+  ];
+  eCtx.beginPath(); eCtx.moveTo(pts[0][0], pts[0][1]);
+  for (let i=1;i<pts.length;i++) {
+    const prev=pts[i-1], cur=pts[i];
+    const cpx=(prev[0]+cur[0])/2;
+    eCtx.bezierCurveTo(cpx,prev[1],cpx,cur[1],cur[0],cur[1]);
+  }
+  eCtx.strokeStyle=cfg.col; eCtx.lineWidth=2.5; eCtx.stroke();
+
+  // Reactants label
+  eCtx.font='10px JetBrains Mono,monospace'; eCtx.fillStyle=cfg.col; eCtx.textAlign='left';
+  eCtx.fillText('Reactants', 60, pts[0][1]-8);
+  eCtx.fillText('Products', W*.78, pts[4][1]-8);
+  // Energy axis label
+  eCtx.save(); eCtx.translate(14, H/2); eCtx.rotate(-Math.PI/2);
+  eCtx.textAlign='center'; eCtx.fillStyle='#888'; eCtx.font='10px sans-serif';
+  eCtx.fillText('Energy', 0, 0); eCtx.restore();
+  // Transition state marker
+  eCtx.beginPath(); eCtx.arc(pts[2][0], pts[2][1], 4, 0, Math.PI*2);
+  eCtx.fillStyle='#888'; eCtx.fill();
+  eCtx.font='9px JetBrains Mono,monospace'; eCtx.fillStyle='#888'; eCtx.textAlign='center';
+  eCtx.fillText('Eₐ', pts[2][0], pts[2][1]-10);
+  // ΔH arrow
+  eCtx.beginPath(); eCtx.moveTo(W*.78, pts[0][1]); eCtx.lineTo(W*.78, pts[4][1]);
+  eCtx.strokeStyle=cfg.product<cfg.reactant?GREEN:RED; eCtx.lineWidth=1.5; eCtx.setLineDash([3,3]); eCtx.stroke(); eCtx.setLineDash([]);
+  eCtx.fillStyle=cfg.product<cfg.reactant?GREEN:RED; eCtx.textAlign='left'; eCtx.font='10px JetBrains Mono,monospace';
+  eCtx.fillText(cfg.product<cfg.reactant?'ΔH < 0':'ΔH > 0', W*.8, (pts[0][1]+pts[4][1])/2);
+}
+
+// ── INFO PANEL DATA ──
+const INFO_DATA = {
+  ionic: {
+    title:"Ionic Bonding", sub:"Example: Sodium Chloride (NaCl)",
+    what:"A metal atom loses electrons to become a cation (+). A non-metal gains them to become an anion (−). The electrostatic attraction between opposite charges forms the bond.",
+    why:"Na has 1 weakly-held valence electron (low ionisation energy: 496 kJ/mol). Cl has high electron affinity (349 kJ/mol). The lattice energy released (−787 kJ/mol) makes the overall process highly exothermic.",
+    formula:"Na → Na⁺ + e⁻  (ionisation)
+Cl + e⁻ → Cl⁻  (electron gain)
+Na⁺ + Cl⁻ → NaCl lattice",
+    props:"High melting point (strong lattice forces), conducts only when molten/dissolved, brittle, usually soluble in polar solvents.",
+    mistake:"NaCl does NOT contain molecules — it's a giant ionic lattice. No discrete NaCl units. The formula shows the simplest ratio of ions.",
+    real:"Nerve impulse transmission: Na⁺ ions flood through membrane channels to generate action potentials — every thought requires ionic bonding."
+  },
+  covalent: {
+    title:"Covalent Bonding", sub:"Example: Water (H₂O), selected below",
+    what:"Two non-metal atoms share one or more pairs of electrons. The shared electrons are attracted to BOTH nuclei simultaneously, creating the bond. Multiple shared pairs = double/triple bonds.",
+    why:"When the electronegativity difference between atoms is small (<1.7), neither atom can fully claim the electrons. Sharing is energetically favourable — the bonding orbital is lower energy than either separate atomic orbital.",
+    formula:"H• + •H → H:H  (H₂, single bond)
+O + 2H → H:O:H  (H₂O, 2 single bonds)
+O + C + O → O=C=O  (CO₂, 2 double bonds)",
+    props:"Lower melting points (simple covalent); very high if giant (SiO₂, diamond); doesn't conduct electricity (no free ions or electrons); solubility depends on polarity.",
+    mistake:"Polar bonds ≠ polar molecule. CO₂ has polar C=O bonds but is non-polar (linear). H₂O has polar O-H bonds AND is polar (bent). Geometry determines net dipole.",
+    real:"DNA is held together by covalent bonds in its backbone (strong, stores genetic info) and hydrogen bonds between base pairs (weak enough to 'unzip' for replication)."
+  },
+  metallic: {
+    title:"Metallic Bonding", sub:"Example: Copper (Cu), Iron (Fe)",
+    what:"Metal atoms release their valence electrons into a shared 'sea' of delocalised electrons. The positive metal ions (cations) are held together by their attraction to this mobile electron cloud.",
+    why:"Metals have low ionisation energies — they release electrons easily. The delocalised electrons can move freely, lowering the overall energy of the system compared to localised bonding.",
+    formula:"Cu → Cu⁺ + e⁻ (for each atom)
+Electrons delocalise into conduction band
+Coulombic attraction: Cu⁺ lattice ↔ e⁻ sea",
+    props:"High melting points (strong metallic bonding), excellent electrical conductors (mobile electrons), malleable/ductile (ion layers slide — no directional bonds), lustrous (electrons reflect light).",
+    mistake:"Metallic bonds are non-directional. When you bend a metal, ion layers slide over each other WITHOUT breaking the bond. This is why metals are malleable. Ionic solids shatter because sliding realigns like charges.",
+    real:"Copper wiring: delocalised electrons carry electrical current. Aluminium aircraft: metallic bonding allows thin, strong sheets to be formed. Tungsten filaments: very strong metallic bonds allow 3422°C use."
+  },
+  comparison: {
+    title:"Bond Type Comparison", sub:"Ionic vs Covalent vs Metallic",
+    what:"Bonding exists on a spectrum. The type is determined primarily by electronegativity difference. No bond is 100% ionic or covalent — all have some character of both.",
+    why:"Electronegativity difference > 1.7: ionic character dominates. < 1.7: covalent. Metals: metallic bonding. Pauling's scale quantifies the 'pull' on bonding electrons.",
+    formula:"EN difference > 1.7 → ionic (NaCl: 3.16−0.93=2.23)
+EN difference < 1.7 → covalent (HCl: 3.16−2.20=0.96)
+Metal-metal → metallic",
+    props:"See comparison table below for all key properties across bond types.",
+    mistake:"Bond type does NOT uniquely determine all properties. Giant covalent structures (diamond, SiO₂) have very high melting points — similar to ionic. Always consider structure AND bonding.",
+    real:"Drug design exploits all bond types: ionic salt forms improve solubility, covalent bonds provide the drug's core structure, metallic coordination helps catalytic drugs (cisplatin uses Pt)."
+  }
+};
+
+function updateInfoPanel() {
+  const d = INFO_DATA[mode] || INFO_DATA.ionic;
+  document.getElementById('info-title').textContent   = d.title;
+  document.getElementById('info-sub').textContent     = d.sub;
+  document.getElementById('info-what').textContent    = d.what;
+  document.getElementById('info-why').textContent     = d.why;
+  document.getElementById('info-formula').innerHTML   = d.formula.replace(/\n/g,'<br>');
+  document.getElementById('info-props').textContent   = d.props;
+  document.getElementById('info-mistake').textContent = d.mistake;
+  document.getElementById('info-real').textContent    = d.real;
+  document.getElementById('energy-title').textContent = `${d.title} — Energy Profile`;
+  drawEnergy();
+}
+
+// ── MAIN LOOP ──
+let t = 0;
+function loop() {
+  if (!animRunning) return;
+  t += slowMode ? 0.015 : 0.04;
+  switch (mode) {
+    case 'ionic':      drawIonic(t); break;
+    case 'covalent':   drawCovalent(t); break;
+    case 'metallic':   drawMetallic(t); break;
+    case 'comparison': drawComparison(t); break;
+  }
+  rafId = requestAnimationFrame(loop);
+}
+
+// Init
+resizeCanvas();
+updateInfoPanel();
+loop();
+window.addEventListener('resize', () => { resizeCanvas(); drawEnergy(); });
+</script>
+</body>
+</html>

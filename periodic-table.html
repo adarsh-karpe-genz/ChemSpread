@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en" data-page="ptable">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Periodic Table — ChemSpread</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+/* === DESIGN SYSTEM === */
+/* ═══════════════════════════════════════════════
+   CHEMSPREAD · DESIGN SYSTEM v2.0
+   Violet Scientific Editorial Theme
+   ═══════════════════════════════════════════════ */
+
+/* ── DESIGN TOKENS ──────────────────────────────── */
+:root {
+  /* Core palette */
+  --primary:   #2D1B69;
+  --secondary: #4B2E83;
+  --accent:    #9F7AEA;
+  --highlight: #5A4FCF;
+  --bg:        #F4F1FA;
+  --bg-alt:    #EDE9F5;
+  --bg-dark:   #1A1128;
+  --text:      #1E1E2E;
+  --text-muted:#6B6580;
+  --border:    rgba(45,27,105,0.12);
+  --border-med:rgba(45,27,105,0.22);
+  --border-strong:rgba(45,27,105,0.38);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(45,27,105,0.08);
+  --shadow-md: 0 4px 16px rgba(45,27,105,0.12);
+  --shadow-violet: 0 2px 20px rgba(90,79,207,0.18);
+
+  /* Typography */
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'IBM Plex Sans', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.4rem;
+  --space-sm: 0.8rem;
+  --space-md: 1.6rem;
+  --space-lg: 3.2rem;
+  --space-xl: 6rem;
+  --space-2xl:9rem;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --t-fast: 0.18s;
+  --t-med:  0.35s;
+  --t-slow: 0.6s;
+}
+
+/* ── RESET & BASE ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.75;
+  overflow-x: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ── TYPOGRAPHY ──────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--primary);
+}
+h1 { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+h3 { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+h4 { font-size: 1.1rem; }
+
+p { color: var(--text); }
+em { font-family: var(--serif); font-style: italic; }
+strong { font-weight: 500; }
+a { color: inherit; text-decoration: none; }
+
+.label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.text-muted { color: var(--text-muted); }
+.body-lg { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 clamp(1.2rem, 5vw, 4rem);
+}
+.section { padding: var(--space-xl) 0; }
+.section + .section { border-top: 1px solid var(--border); }
+
+/* ── FORMULA WATERMARK ───────────────────────────── */
+.formula-bg {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden;
+  z-index: 0; opacity: 0.04;
+  font-family: var(--mono); font-size: clamp(0.7rem, 1vw, 0.9rem);
+  color: var(--primary); line-height: 3; word-break: break-all;
+  padding: 2rem; user-select: none;
+}
+
+/* ── SCROLL PROGRESS ─────────────────────────────── */
+#scroll-progress {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── NAVIGATION ──────────────────────────────────── */
+#main-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(244, 241, 250, 0.93);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow var(--t-med) var(--ease);
+}
+#main-nav.scrolled { box-shadow: var(--shadow-md); }
+
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.85rem clamp(1.2rem, 5vw, 4rem);
+  gap: 2rem;
+}
+.nav-logo {
+  font-family: var(--serif); font-size: 1.3rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; white-space: nowrap;
+}
+.nav-logo sup {
+  font-family: var(--mono); font-size: 0.48rem;
+  color: var(--accent); letter-spacing: 0.1em; vertical-align: super;
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  font-size: 0.8rem; font-weight: 400; letter-spacing: 0.04em;
+  color: var(--text-muted);
+  transition: color var(--t-fast);
+  position: relative; padding-bottom: 2px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1px;
+  background: var(--accent); transition: width var(--t-med) var(--ease);
+}
+.nav-links a:hover, .nav-links a.active { color: var(--primary); }
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+.nav-search {
+  display: flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border-med); padding: 0.35rem 0.8rem;
+  background: transparent; transition: border-color var(--t-fast);
+}
+.nav-search:focus-within { border-color: var(--accent); }
+.nav-search input {
+  border: none; background: transparent; outline: none;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text); width: 140px;
+}
+.nav-search input::placeholder { color: var(--text-muted); }
+.nav-search-icon { color: var(--text-muted); font-size: 0.75rem; }
+
+.nav-cta {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; border: 1px solid var(--primary);
+  color: var(--primary); padding: 0.45rem 1.1rem;
+  transition: background var(--t-fast), color var(--t-fast);
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--primary); color: var(--bg); }
+
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 4px;
+  cursor: pointer; padding: 4px;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--primary); transition: all var(--t-med);
+}
+
+/* ── BREADCRUMB ──────────────────────────────────── */
+.breadcrumb {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em;
+  color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.breadcrumb a { color: var(--accent); }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb-sep { opacity: 0.4; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer; transition: all var(--t-med) var(--ease);
+  border: none; background: none;
+}
+.btn-primary {
+  background: var(--primary); color: var(--bg);
+  padding: 0.75rem 1.8rem;
+}
+.btn-primary:hover {
+  background: var(--highlight);
+  box-shadow: 0 4px 16px rgba(90,79,207,0.3);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  border: 1px solid var(--border-strong); color: var(--primary);
+  padding: 0.75rem 1.8rem;
+}
+.btn-outline:hover {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(159,122,234,0.1);
+}
+.btn-ghost {
+  color: var(--text-muted); border-bottom: 1px solid var(--border-med);
+  padding-bottom: 2px; border-radius: 0;
+}
+.btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── SCIENTIFIC PANELS (replaces generic cards) ─── */
+.sci-panel {
+  border: 1px solid var(--border);
+  padding: 2rem 1.8rem;
+  background: var(--bg);
+  transition: border-color var(--t-med), box-shadow var(--t-med);
+  position: relative; overflow: hidden;
+}
+.sci-panel::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 2px; height: 0;
+  background: linear-gradient(180deg, var(--accent), var(--highlight));
+  transition: height var(--t-slow) var(--ease);
+}
+.sci-panel:hover::before { height: 100%; }
+.sci-panel:hover {
+  border-color: rgba(159,122,234,0.3);
+  box-shadow: var(--shadow-violet);
+}
+
+/* ── SECTION DIVIDERS ────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3; margin: var(--space-lg) 0;
+}
+.divider-molecule {
+  display: flex; align-items: center; gap: 1.2rem;
+  margin: var(--space-lg) 0; opacity: 0.3;
+}
+.divider-molecule::before, .divider-molecule::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent));
+}
+.divider-molecule::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.divider-molecule-icon {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--accent);
+}
+
+/* ── DID YOU KNOW BLOCKS ─────────────────────────── */
+.dyk-block {
+  border-left: 3px solid var(--accent);
+  padding: 1.2rem 1.6rem; background: rgba(159,122,234,0.06);
+  margin: 2rem 0; position: relative;
+}
+.dyk-block .dyk-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
+}
+.dyk-block p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* ── KEY INSIGHT ─────────────────────────────────── */
+.insight-block {
+  background: var(--primary); color: var(--bg);
+  padding: 2rem 2.5rem; position: relative; overflow: hidden;
+}
+.insight-block::before {
+  content: '"'; position: absolute; top: -1.5rem; left: 1.2rem;
+  font-family: var(--serif); font-size: 8rem; color: var(--accent);
+  opacity: 0.12; line-height: 1; pointer-events: none;
+}
+.insight-block .insight-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+}
+.insight-block .insight-text {
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.25rem; line-height: 1.6; font-weight: 300;
+}
+
+/* ── QUICK SUMMARY PANEL ─────────────────────────── */
+.quick-summary {
+  border: 1px solid var(--border-med); padding: 1.6rem 2rem;
+  background: rgba(159,122,234,0.04); margin-bottom: 2.5rem;
+}
+.quick-summary-label {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;
+}
+.quick-summary-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border-med);
+}
+.quick-summary ul { list-style: none; }
+.quick-summary ul li {
+  font-size: 0.88rem; padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border); color: var(--text-muted);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+.quick-summary ul li::before {
+  content: '→'; font-family: var(--mono); font-size: 0.65rem;
+  color: var(--accent); flex-shrink: 0;
+}
+
+/* ── TOOLTIPS ────────────────────────────────────── */
+.tooltip {
+  position: relative; border-bottom: 1px dashed var(--accent);
+  cursor: help; display: inline-block;
+}
+.tooltip::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--primary); color: var(--bg);
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.04em;
+  white-space: nowrap; padding: 0.4rem 0.8rem;
+  pointer-events: none; opacity: 0;
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  z-index: 50;
+}
+.tooltip:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ── SCROLL REVEAL ───────────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity var(--t-slow) var(--ease-out),
+              transform var(--t-slow) var(--ease-out);
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── BACK TO TOP ─────────────────────────────────── */
+#back-to-top {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 100;
+  width: 42px; height: 42px;
+  background: var(--primary); color: var(--bg);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; opacity: 0; pointer-events: none;
+  transition: opacity var(--t-med), transform var(--t-med), background var(--t-fast);
+  transform: translateY(8px);
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; transform: none; }
+#back-to-top:hover { background: var(--highlight); transform: translateY(-2px); }
+
+/* ── FOOTER ──────────────────────────────────────── */
+#main-footer {
+  border-top: 1px solid var(--border-med);
+  padding: 4rem 0 2rem; background: var(--bg-alt);
+}
+.footer-grid {
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem;
+  margin-bottom: 2.5rem;
+}
+.footer-brand-name {
+  font-family: var(--serif); font-size: 1.2rem; font-weight: 700;
+  color: var(--primary); letter-spacing: -0.02em; display: block;
+  margin-bottom: 0.7rem;
+}
+.footer-brand p { font-size: 0.8rem; color: var(--text-muted); max-width: 26ch; }
+.footer-col h4 {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+}
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 0.5rem; }
+.footer-col ul a { font-size: 0.82rem; color: var(--text-muted); transition: color var(--t-fast); }
+.footer-col ul a:hover { color: var(--primary); }
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.5rem; border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted);
+  flex-wrap: wrap; gap: 0.5rem;
+}
+
+/* ── ATOMIC ORBIT ANIMATION ──────────────────────── */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(28px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(28px) rotate(-360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(20px) rotate(360deg); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(159,122,234,0); }
+  50% { box-shadow: 0 0 0 6px rgba(159,122,234,0.12); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links, .nav-search { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-links.open {
+    display: flex; flex-direction: column;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 1.5rem clamp(1.2rem, 5vw, 4rem);
+    gap: 1.2rem;
+  }
+  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* === INTERACTIONS === */
+/* ═══════════════════════════════════════════════════════
+   CHEMSPREAD · INTERACTIONS v3.0
+   Animation system, micro-interactions, particle canvas,
+   DYK engine, ripple, molecule hover, compound tags
+   ═══════════════════════════════════════════════════════ */
+
+/* ── ENHANCED REVEAL SYSTEM ────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.65s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.65s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* stagger children */
+.reveal-stagger > * {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity 0.55s cubic-bezier(0.25,0.8,0.25,1),
+              transform 0.55s cubic-bezier(0.25,0.8,0.25,1);
+}
+.reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay: 0.13s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay: 0.21s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay: 0.29s; }
+.reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay: 0.37s; }
+.reveal-stagger.visible > *:nth-child(6) { opacity:1; transform:none; transition-delay: 0.45s; }
+
+/* ── PARTICLE CANVAS ───────────────────────────────── */
+#cs-particle-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; opacity: 0.35;
+}
+
+/* ── BUTTON UPGRADES ───────────────────────────────── */
+.btn-primary,
+.btn-outline,
+.btn,
+.calc-btn-run,
+.nav-cta {
+  position: relative; overflow: hidden;
+  transform: translateZ(0); /* GPU layer */
+}
+/* ripple */
+.ripple-wave {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0); animation: rippleAnim 0.55s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(3.5); opacity: 0; }
+}
+
+/* hover scale + glow */
+.btn-primary:hover,
+.calc-btn-run:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 22px rgba(90,79,207,0.32);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* ── SCI-PANEL HOVER LIFT ──────────────────────────── */
+.sci-panel {
+  transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1),
+              border-color 0.35s, box-shadow 0.35s;
+}
+.sci-panel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(90,79,207,0.14);
+}
+
+/* ── TEXT UNDERLINE GROW ───────────────────────────── */
+.ul-grow {
+  position: relative; display: inline-block;
+}
+.ul-grow::after {
+  content: ''; position: absolute; bottom: -1px; left: 0;
+  width: 0; height: 1px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1);
+}
+.ul-grow:hover::after { width: 100%; }
+
+/* ── DID-YOU-KNOW ENGINE ───────────────────────────── */
+.dyk-rotating {
+  position: relative; overflow: hidden;
+  min-height: 60px;
+}
+.dyk-rotating p {
+  position: absolute; inset: 0;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  padding-top: 2px;
+}
+.dyk-rotating p.dyk-active {
+  opacity: 1; transform: translateY(0);
+  position: relative;
+}
+.dyk-dots {
+  display: flex; gap: 5px; margin-top: 0.8rem;
+}
+.dyk-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border-strong); cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+}
+.dyk-dot.active { background: var(--accent); transform: scale(1.3); }
+
+/* ── MOLECULE CARD HOVER ───────────────────────────── */
+.mol-card {
+  transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1),
+              box-shadow 0.4s;
+}
+.mol-card:hover {
+  transform: rotate(1.5deg) translateY(-4px);
+  box-shadow: 0 10px 28px rgba(90,79,207,0.16);
+}
+.mol-card:hover .mol-bond { stroke: var(--accent); filter: drop-shadow(0 0 3px rgba(159,122,234,0.5)); }
+.mol-card:hover .mol-atom { fill: var(--highlight); }
+
+/* ── COMPOUND TAGS ─────────────────────────────────── */
+.tag-system { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.2rem 0; }
+.chem-tag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.28rem 0.65rem;
+  border: 1px solid var(--border-med); color: var(--text-muted);
+  cursor: pointer; transition: all 0.22s;
+  user-select: none;
+}
+.chem-tag:hover { border-color: var(--accent); color: var(--accent); }
+.chem-tag.tag-active {
+  background: var(--primary); color: var(--bg); border-color: var(--primary);
+}
+.chem-tag[data-tag="organic"]    { --tc: #9F7AEA; }
+.chem-tag[data-tag="inorganic"]  { --tc: #5A4FCF; }
+.chem-tag[data-tag="industrial"] { --tc: #B87333; }
+.chem-tag[data-tag="biological"] { --tc: #27AE60; }
+.chem-tag.tag-active { background: var(--tc,var(--primary)); border-color: var(--tc,var(--primary)); }
+
+/* ── ELEMENT COMPARISON PANEL ──────────────────────── */
+#compare-panel {
+  display: none; margin-top: 2rem;
+  border: 1px solid var(--border-med);
+  animation: fadeSlideUp 0.35s ease;
+  overflow: hidden;
+}
+#compare-panel.open { display: block; }
+
+.compare-header {
+  background: var(--primary); color: var(--bg);
+  padding: 0.9rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+}
+.compare-close {
+  cursor: pointer; opacity: 0.6; transition: opacity 0.2s;
+  background: none; border: none; color: var(--bg); font-size: 1rem;
+}
+.compare-close:hover { opacity: 1; }
+
+.compare-body {
+  display: grid; grid-template-columns: 1fr 60px 1fr;
+  gap: 0; background: var(--bg);
+}
+.compare-col {
+  padding: 1.8rem;
+}
+.compare-col:first-child { border-right: 1px solid var(--border); }
+.compare-col:last-child  { border-left: 1px solid var(--border); }
+.compare-vs {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 1.2rem; color: var(--text-muted);
+  font-style: italic;
+}
+.compare-symbol {
+  font-family: var(--serif); font-size: 3.5rem; font-weight: 700;
+  color: var(--primary); line-height: 1; margin-bottom: 0.2rem;
+}
+.compare-name {
+  font-family: var(--serif); font-size: 1.2rem; color: var(--primary); margin-bottom: 1rem;
+}
+.compare-row {
+  padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.83rem;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-key { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
+.compare-val { font-family: var(--serif); font-size: 1rem; color: var(--text); }
+.compare-bar-wrap { margin-top: 0.3rem; height: 3px; background: var(--border); }
+.compare-bar {
+  height: 100%; background: linear-gradient(90deg, var(--highlight), var(--accent));
+  transition: width 0.8s cubic-bezier(0.25,0.8,0.25,1); width: 0;
+}
+
+/* compare select buttons on periodic table */
+.el-compare-btn {
+  position: absolute; top: 2px; right: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; z-index: 5;
+  transition: background 0.18s, border-color 0.18s;
+  display: none;
+}
+.el:hover .el-compare-btn { display: block; }
+.el-compare-btn:hover { background: var(--accent); border-color: var(--accent); }
+.el.compare-selected { background: rgba(159,122,234,0.12) !important; border-color: var(--accent) !important; }
+.el.compare-selected .el-compare-btn { display: block; background: var(--accent); border-color: var(--accent); }
+
+/* ── TREND CHARTS SECTION ──────────────────────────── */
+#trend-charts {
+  padding: 3rem 0 4rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.trend-tabs {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  margin-bottom: 2rem; width: fit-content;
+}
+.trend-tab {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.6rem 1.2rem;
+  cursor: pointer; border-right: 1px solid var(--border);
+  color: var(--text-muted); transition: all 0.2s;
+  background: var(--bg); border-radius: 0;
+}
+.trend-tab:last-child { border-right: none; }
+.trend-tab.active { background: var(--primary); color: var(--bg); }
+.trend-tab:hover:not(.active) { color: var(--primary); background: rgba(159,122,234,0.06); }
+
+.trend-chart-wrap {
+  position: relative; height: 320px;
+  border: 1px solid var(--border); background: var(--bg); padding: 1.5rem;
+}
+.trend-chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* ── REACTION FILTER ───────────────────────────────── */
+.reaction-filter { margin: 1.5rem 0; }
+.filter-group {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem;
+  align-items: center;
+}
+.filter-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase; min-width: 60px;
+}
+
+/* reaction cards */
+.reaction-card {
+  border: 1px solid var(--border); padding: 1.4rem 1.6rem; margin-bottom: 1px;
+  transition: all 0.3s ease; background: var(--bg);
+  position: relative; overflow: hidden;
+}
+.reaction-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform 0.35s ease;
+}
+.reaction-card:hover::before { transform: scaleY(1); }
+.reaction-card.hidden { display: none; }
+.reaction-card:hover { border-color: rgba(159,122,234,0.3); transform: translateX(4px); }
+
+.rc-formula { font-family: var(--mono); font-size: 0.85rem; color: var(--primary); margin-bottom: 0.4rem; }
+.rc-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.rc-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.rc-tag {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.18rem 0.5rem;
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+
+/* ── AMBIENT SOUND TOGGLE ──────────────────────────── */
+#sound-toggle {
+  position: fixed; bottom: 2rem; left: 2rem; z-index: 100;
+  width: 38px; height: 38px;
+  background: var(--bg-alt); border: 1px solid var(--border-med);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--text-muted);
+  transition: all 0.22s; border-radius: 50%;
+  opacity: 0.7;
+}
+#sound-toggle:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+#sound-toggle.sound-on { background: var(--primary); color: var(--bg); border-color: var(--primary); opacity: 1; }
+
+/* ── ELEMENT HOVER PREVIEW ─────────────────────────── */
+#el-hover-preview {
+  position: fixed; z-index: 500; pointer-events: none;
+  background: var(--primary); color: var(--bg);
+  padding: 0.8rem 1.1rem; border: 1px solid rgba(159,122,234,0.3);
+  max-width: 200px; min-width: 150px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.18s, transform 0.18s;
+  font-family: var(--mono);
+}
+#el-hover-preview.visible { opacity: 1; transform: translateY(0); }
+#el-hover-preview .ph-sym { font-family: var(--serif); font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1; }
+#el-hover-preview .ph-name { font-size: 0.75rem; margin: 0.2rem 0; }
+#el-hover-preview .ph-num { font-size: 0.6rem; opacity: 0.6; letter-spacing: 0.08em; }
+#el-hover-preview .ph-desc { font-size: 0.6rem; opacity: 0.7; margin-top: 0.4rem; line-height: 1.5; }
+
+/* ── SCROLL PROGRESS (thicker, brighter) ───────────── */
+#scroll-progress {
+  height: 3px !important;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--highlight)) !important;
+  box-shadow: 0 0 8px rgba(159,122,234,0.4);
+}
+
+/* ── BACK TO TOP (circular) ────────────────────────── */
+#back-to-top {
+  border-radius: 50% !important;
+  width: 44px !important; height: 44px !important;
+  box-shadow: var(--shadow-violet);
+  transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1) !important;
+}
+#back-to-top:hover { transform: translateY(-3px) scale(1.08) !important; }
+
+/* ── MOBILE REDUCTION ──────────────────────────────── */
+@media (max-width: 768px) {
+  #cs-particle-canvas { display: none; }
+  .sci-panel:hover { transform: none; }
+  .mol-card:hover { transform: none; }
+  .compare-body { grid-template-columns: 1fr; }
+  .compare-vs { display: none; }
+}
+
+/* ── KEYFRAMES ─────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
+
+</style>
+<style>
+body { padding-top: 58px; }
+.page-hero { padding: 3rem 0 1.5rem; border-bottom: 1px solid var(--border); }
+
+/* ── CONTROLS ── */
+.pt-controls {
+  display: flex; flex-wrap: wrap; gap: .7rem; align-items: center;
+  padding: 1rem 0; margin-bottom: .8rem;
+  border-bottom: 1px solid var(--border);
+}
+.pt-search-wrap {
+  display: flex; align-items: center; gap: .4rem;
+  border: 1px solid var(--border-med); padding: .38rem .75rem;
+  background: var(--bg); flex: 1; min-width: 150px; max-width: 240px;
+  transition: border-color .18s;
+}
+.pt-search-wrap:focus-within { border-color: var(--accent); }
+.pt-search-wrap input {
+  border: none; background: transparent; outline: none;
+  font-family: var(--mono); font-size: .78rem; color: var(--text); width: 100%;
+}
+.filter-btns { display: flex; flex-wrap: wrap; gap: .3rem; }
+.flt {
+  font-family: var(--mono); font-size: .55rem; letter-spacing: .08em;
+  text-transform: uppercase; padding: .24rem .6rem;
+  border: 1px solid var(--border-med); color: var(--text-muted);
+  background: var(--bg); cursor: pointer; transition: all .18s;
+}
+.flt:hover { border-color: var(--accent); color: var(--accent); }
+.flt.on { color: #fff; border-color: transparent; }
+#pt-count { font-family: var(--mono); font-size: .62rem; color: var(--text-muted); white-space: nowrap; }
+
+/* ── LEGEND ── */
+.pt-legend {
+  display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-bottom: .8rem;
+}
+.leg-item {
+  display: flex; align-items: center; gap: .35rem;
+  font-family: var(--mono); font-size: .58rem; color: var(--text-muted);
+  cursor: pointer; transition: color .18s;
+}
+.leg-item:hover { color: var(--text); }
+.leg-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── PERIODIC TABLE GRID (CSS GRID — THE FIX) ── */
+.pt-scroll { overflow-x: auto; padding-bottom: 1rem; }
+
+.periodic-table {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(44px, 1fr));
+  grid-template-rows: repeat(7, 56px);
+  gap: 3px;
+  min-width: 830px;
+}
+
+/* f-block gap between period 7 and lanthanides */
+.fblock-spacer {
+  grid-column: 1 / -1;
+  height: 10px;
+}
+.fblock-label-row {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(44px, 1fr));
+  gap: 3px;
+  min-width: 830px;
+  margin-top: 3px;
+}
+.fblock-label-cell {
+  height: 56px; display: flex; align-items: center;
+  padding-left: 6px;
+  font-family: var(--mono); font-size: .52rem; color: var(--accent);
+  letter-spacing: .07em; white-space: nowrap;
+}
+.fblock-row {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(44px, 1fr));
+  gap: 3px;
+  min-width: 830px;
+  margin-top: 3px;
+}
+.fblock-row .element { height: 56px; }
+
+/* ── ELEMENT TILE ── */
+.element {
+  height: 56px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  padding: 3px 3px 2px;
+  cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: transform .18s, border-color .18s, box-shadow .18s, opacity .25s;
+  user-select: none;
+}
+.element:hover {
+  transform: scale(1.14); z-index: 50;
+  border-color: var(--accent);
+  box-shadow: 0 4px 14px rgba(90,79,207,.25);
+}
+.element.dimmed { opacity: .1; pointer-events: none; }
+.element.highlighted { opacity: 1 !important; pointer-events: auto; }
+.element.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent); z-index: 30; }
+.element.compare-sel { border-color: #27AE60 !important; box-shadow: 0 0 0 2px #27AE60; z-index: 30; }
+
+.el-num  { font-family: var(--mono); font-size: .46rem; color: var(--text-muted); line-height: 1; }
+.el-sym  { font-family: var(--serif); font-size: clamp(.8rem, 1vw, .98rem); font-weight: 700; text-align: center; line-height: 1.1; }
+.el-name { font-family: var(--mono); font-size: .26rem; color: var(--text-muted); text-align: center; overflow: hidden; white-space: nowrap; }
+.el-mass { font-family: var(--mono); font-size: .25rem; color: var(--text-muted); text-align: center; }
+
+.cmp-btn {
+  position: absolute; top: 2px; right: 2px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; z-index: 5; display: none; transition: all .15s;
+}
+.element:hover .cmp-btn,
+.element.compare-sel .cmp-btn { display: block; }
+.cmp-btn:hover { background: #27AE60; border-color: #27AE60; }
+.element.compare-sel .cmp-btn { background: #27AE60; border-color: #27AE60; }
+
+/* ── HOVER TOOLTIP ── */
+#el-tooltip {
+  position: fixed; z-index: 600; pointer-events: none;
+  background: var(--primary); color: var(--bg);
+  padding: .7rem 1rem; border: 1px solid rgba(159,122,234,.3);
+  max-width: 190px; font-family: var(--mono);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity .14s, transform .14s;
+}
+#el-tooltip.show { opacity: 1; transform: translateY(0); }
+#el-tooltip .tt-sym  { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: var(--accent); line-height: 1; }
+#el-tooltip .tt-name { font-size: .72rem; margin: .15rem 0; }
+#el-tooltip .tt-num  { font-size: .58rem; opacity: .55; }
+#el-tooltip .tt-cat  { font-size: .54rem; text-transform: uppercase; letter-spacing: .06em; margin-top: .3rem; }
+
+/* ── DETAIL PANEL ── */
+#el-panel {
+  display: none; margin-top: 1.2rem;
+  border: 1px solid var(--border-med); background: var(--bg-alt);
+  animation: fadeSlideUp .28s ease;
+}
+#el-panel.open {
+  display: grid; grid-template-columns: 165px 1fr;
+}
+.ep-left {
+  padding: 1.8rem 1.4rem; background: var(--primary); color: var(--bg);
+  border-right: 1px solid rgba(159,122,234,.2);
+}
+.ep-num   { font-family: var(--mono); font-size: .6rem; opacity: .55; margin-bottom: .15rem; }
+.ep-sym   { font-family: var(--serif); font-size: 4.5rem; font-weight: 700; line-height: 1; color: var(--accent); }
+.ep-name  { font-family: var(--serif); font-size: 1.2rem; margin-top: .2rem; }
+.ep-cat   { font-family: var(--mono); font-size: .58rem; text-transform: uppercase; letter-spacing: .08em; margin-top: .3rem; opacity: .6; }
+.ep-cfg   { font-family: var(--mono); font-size: .62rem; margin-top: .8rem; opacity: .7; line-height: 1.6; }
+.ep-right { padding: 1.6rem 2rem; }
+.ep-facts { display: grid; grid-template-columns: repeat(3,1fr); gap: .8rem 1.4rem; margin-bottom: 1rem; }
+.epf-l    { font-family: var(--mono); font-size: .54rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+.epf-v    { font-family: var(--serif); font-size: .98rem; color: var(--text); margin-top: .1rem; }
+.ep-uses  { font-family: var(--mono); font-size: .65rem; color: var(--accent); padding: .5rem .8rem; border-left: 2px solid var(--accent); background: rgba(90,79,207,.04); margin-bottom: .8rem; }
+.ep-desc  { font-size: .84rem; color: var(--text-muted); line-height: 1.75; border-top: 1px solid var(--border); padding-top: .8rem; margin-bottom: .8rem; }
+.ep-close { font-family: var(--mono); font-size: .6rem; color: var(--text-muted); border: 1px solid var(--border); padding: .22rem .55rem; background: none; cursor: pointer; transition: all .18s; }
+.ep-close:hover { color: var(--primary); border-color: var(--primary); }
+.ep-actions { display: flex; gap: .8rem; flex-wrap: wrap; padding-top: .8rem; border-top: 1px solid var(--border); }
+.ep-link { font-family: var(--mono); font-size: .58rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); border-bottom: 1px solid transparent; transition: border-color .18s; cursor: pointer; }
+.ep-link:hover { border-color: var(--accent); }
+
+/* ── COMPARE PANEL ── */
+#cmp-panel { display: none; margin-top: 1rem; border: 1px solid var(--border-med); animation: fadeSlideUp .28s ease; }
+#cmp-panel.open { display: block; }
+.cph { background: var(--primary); color: var(--bg); padding: .75rem 1.4rem; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: .64rem; letter-spacing: .08em; }
+.cpclose { background: none; border: none; color: var(--bg); cursor: pointer; opacity: .7; font-size: .9rem; }
+.cpclose:hover { opacity: 1; }
+.cpb { display: grid; grid-template-columns: 1fr 46px 1fr; background: var(--bg); }
+.cpc { padding: 1.4rem; }
+.cpc:first-child { border-right: 1px solid var(--border); }
+.cpc:last-child  { border-left: 1px solid var(--border); }
+.cpvs { display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-style: italic; color: var(--text-muted); }
+.cp-sym  { font-family: var(--serif); font-size: 2.6rem; font-weight: 700; color: var(--primary); line-height: 1; }
+.cp-nm   { font-family: var(--serif); font-size: 1rem; color: var(--primary); margin-bottom: .7rem; }
+.cp-row  { padding: .42rem 0; border-bottom: 1px solid var(--border); font-size: .8rem; }
+.cp-row:last-child { border-bottom: none; }
+.cp-key  { font-family: var(--mono); font-size: .52rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.cp-val  { font-family: var(--serif); font-size: .92rem; margin-top: .08rem; }
+.cp-bw   { height: 3px; background: var(--border); margin-top: .2rem; }
+.cp-bar  { height: 100%; background: linear-gradient(90deg, var(--highlight), var(--accent)); width: 0; transition: width .8s ease; }
+#cmp-status { font-family: var(--mono); font-size: .62rem; color: var(--text-muted); padding: .5rem 0; display: none; }
+
+/* ── TREND CHARTS ── */
+#trend-section { padding: 2.5rem 0 4rem; border-top: 1px solid var(--border); background: var(--bg-alt); }
+.trend-tabs { display: flex; border: 1px solid var(--border); width: fit-content; margin-bottom: 1.2rem; }
+.trend-tab {
+  font-family: var(--mono); font-size: .6rem; letter-spacing: .08em; text-transform: uppercase;
+  padding: .52rem 1.1rem; cursor: pointer; border-right: 1px solid var(--border);
+  color: var(--text-muted); background: var(--bg); border-radius: 0; border-top: none; border-bottom: none;
+  transition: all .18s;
+}
+.trend-tab:last-child { border-right: none; }
+.trend-tab.active { background: var(--primary); color: var(--bg); }
+.trend-chart-box { height: 280px; border: 1px solid var(--border); background: var(--bg); padding: 1.2rem; position: relative; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  #el-panel.open { grid-template-columns: 1fr; }
+  .ep-left { border-right: none; border-bottom: 1px solid rgba(159,122,234,.2); }
+  .ep-facts { grid-template-columns: 1fr 1fr; }
+  .cpb { grid-template-columns: 1fr; }
+  .cpvs { display: none; }
+  .cpc:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+  .cpc:last-child  { border-left: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- BOOT SCREEN -->
+<div id="bootScreen" style="position:fixed;inset:0;background:#2D1B69;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s ease">
+  <div style="text-align:center">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:3.5rem;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:.5rem">Chem<em style="color:#9F7AEA">Spread</em></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.75rem;letter-spacing:.2em;color:rgba(159,122,234,.7);text-transform:uppercase;margin-bottom:2.5rem">Periodic Table · 118 Elements</div>
+    <!-- animated atom -->
+    <div style="position:relative;width:100px;height:100px;margin:0 auto 2rem">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div style="width:20px;height:20px;background:#9F7AEA;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:.7rem;color:#fff;font-weight:700">C</div>
+      </div>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div style="width:90px;height:55px;border-radius:50%;border:1px solid rgba(159,122,234,.4);animation:spinBoot 3s linear infinite"></div>
+      </div>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div style="width:70px;height:44px;border-radius:50%;border:1px solid rgba(159,122,234,.3);animation:spinBoot 4.5s linear infinite reverse;transform:rotate(60deg)"></div>
+      </div>
+    </div>
+    <div id="boot-progress" style="width:200px;height:2px;background:rgba(255,255,255,.15);margin:0 auto">
+      <div id="boot-bar" style="height:100%;background:linear-gradient(90deg,#5A4FCF,#9F7AEA);width:0;transition:width .05s linear"></div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(255,255,255,.4);margin-top:.8rem;letter-spacing:.1em" id="boot-label">Loading elements…</div>
+  </div>
+</div>
+
+<style>@keyframes spinBoot { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }</style>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">/</span><span>Periodic Table</span></div>
+    <span class="label">118 Elements · CSS Grid · Search · Filter · Compare</span>
+    <h1 style="margin-top:.4rem">The Periodic Table</h1>
+    <p class="body-lg" style="margin-top:.4rem;max-width:54ch">Click any element to view full details. Search by name or symbol. Filter by category. Select 2 elements to compare side-by-side.</p>
+  </div>
+</div>
+
+<div style="padding:1.5rem 0 4rem">
+  <div class="container">
+
+    <!-- CONTROLS -->
+    <div class="pt-controls">
+      <div class="pt-search-wrap">
+        <span style="color:var(--text-muted);font-size:.8rem">⌕</span>
+        <input type="text" id="pt-search" placeholder="Name or symbol…" autocomplete="off"/>
+      </div>
+      <div class="filter-btns" id="filter-btns">
+        <button class="flt on" data-cat="all" style="background:var(--primary);border-color:var(--primary);color:#fff">All</button>
+        <button class="flt" data-cat="alkali">Alkali Metal</button>
+        <button class="flt" data-cat="alkaline">Alkaline Earth</button>
+        <button class="flt" data-cat="transition">Transition</button>
+        <button class="flt" data-cat="post">Post-Transition</button>
+        <button class="flt" data-cat="metalloid">Metalloid</button>
+        <button class="flt" data-cat="nonmetal">Nonmetal</button>
+        <button class="flt" data-cat="halogen">Halogen</button>
+        <button class="flt" data-cat="noble-gas">Noble Gas</button>
+        <button class="flt" data-cat="lanthanide">Lanthanide</button>
+        <button class="flt" data-cat="actinide">Actinide</button>
+      </div>
+      <span id="pt-count">118 elements</span>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="pt-legend" id="pt-legend"></div>
+
+    <!-- MAIN GRID -->
+    <div class="pt-scroll">
+      <div class="periodic-table" id="pt-grid"></div>
+      <!-- f-block rows below main grid -->
+      <div class="fblock-spacer"></div>
+      <div class="fblock-label-row">
+        <div class="fblock-label-cell" style="grid-column:1/span 3">Lanthanides 57–71</div>
+      </div>
+      <div class="fblock-row" id="lant-row"></div>
+      <div class="fblock-row" id="lant-label-row" style="margin-top:0"></div>
+      <div class="fblock-label-row" style="margin-top:3px">
+        <div class="fblock-label-cell" style="grid-column:1/span 3">Actinides 89–103</div>
+      </div>
+      <div class="fblock-row" id="act-row"></div>
+    </div>
+
+    <!-- STATUS -->
+    <div id="cmp-status"></div>
+
+    <!-- DETAIL PANEL -->
+    <div id="el-panel"></div>
+
+    <!-- COMPARE PANEL -->
+    <div id="cmp-panel"></div>
+
+  </div>
+</div>
+
+<!-- TREND CHARTS -->
+<div id="trend-section">
+  <div class="container">
+    <div class="reveal" style="margin-bottom:1.4rem">
+      <span class="label">Periodic Trends · Periods 1–4</span>
+      <h2 style="margin-top:.3rem">Element Property Trends</h2>
+      <p style="font-size:.87rem;color:var(--text-muted);margin-top:.3rem">How element properties vary systematically across periods and down groups.</p>
+    </div>
+    <div class="trend-tabs">
+      <button class="trend-tab active" data-trend="en">Electronegativity</button>
+      <button class="trend-tab" data-trend="ie">Ionisation Energy</button>
+      <button class="trend-tab" data-trend="ar">Atomic Radius</button>
+      <button class="trend-tab" data-trend="mass">Atomic Mass</button>
+    </div>
+    <div class="trend-chart-box"><canvas id="trend-canvas"></canvas></div>
+    <p id="trend-note" style="font-family:var(--mono);font-size:.64rem;color:var(--text-muted);margin-top:.7rem;letter-spacing:.04em"></p>
+  </div>
+</div>
+
+<!-- HOVER TOOLTIP -->
+<div id="el-tooltip"></div>
+
+<script src="js/elements.js"></script>
+<script src="js/compounds.js"></script>
+<script src="js/reactions.js"></script>
+<script src="js/knowledge-graph.js"></script>
+<script src="js/components.js"></script>
+<script src="js/interactions.js"></script>
+<script>
+/* ══════════════════════════════════════════════
+   BOOT SCREEN — session control
+══════════════════════════════════════════════ */
+const boot = document.getElementById('bootScreen');
+const bar  = document.getElementById('boot-bar');
+const blbl = document.getElementById('boot-label');
+
+if (!sessionStorage.getItem('cs_visited')) {
+  sessionStorage.setItem('cs_visited', '1');
+  let pct = 0;
+  const msgs = ['Loading elements…','Building grid…','Applying theme…','Ready!'];
+  let mIdx = 0;
+  const intv = setInterval(() => {
+    pct = Math.min(pct + 2, 100);
+    bar.style.width = pct + '%';
+    if (pct % 25 === 0 && mIdx < msgs.length) blbl.textContent = msgs[mIdx++];
+    if (pct >= 100) {
+      clearInterval(intv);
+      setTimeout(() => {
+        boot.style.opacity = '0';
+        setTimeout(() => boot.style.display = 'none', 650);
+      }, 400);
+    }
+  }, 40); // ~2 sec total
+} else {
+  boot.style.display = 'none';
+}
+
+/* ══════════════════════════════════════════════
+   PERIODIC TABLE ENGINE — CSS GRID
+══════════════════════════════════════════════ */
+
+// Category colour & name maps
+const CC = CAT_COLORS; // from elements.js
+const CN = CAT_NAMES;  // from elements.js
+
+// Build legend
+const legend = document.getElementById('pt-legend');
+Object.entries(CN).forEach(([cat, lbl]) => {
+  const d = document.createElement('div');
+  d.className = 'leg-item';
+  d.innerHTML = `<span class="leg-dot" style="background:${CC[cat]}"></span>${lbl}`;
+  d.addEventListener('click', () => activateFilter(cat, null));
+  legend.appendChild(d);
+});
+
+// Separate lanthanides, actinides, and main-grid elements
+const mainElements = ELEMENTS.filter(e => e.period <= 7);
+const lantElements = ELEMENTS.filter(e => e.period === 9);
+const actElements  = ELEMENTS.filter(e => e.period === 10);
+
+// tile registry
+const tiles = {}; // number → div
+
+// ── BUILD MAIN GRID ──────────────────────────
+const grid = document.getElementById('pt-grid');
+
+// Mark period-6 col-3 and period-7 col-3 as f-block placeholders
+const fblockPlaceholders = new Set(['6-3','7-3']);
+
+mainElements.forEach(el => {
+  // Skip La-Lu (57-71) and Ac-Lr (89-103) — they go in f-block rows
+  if ((el.number >= 57 && el.number <= 71) || (el.number >= 89 && el.number <= 103)) return;
+
+  const div = makeTile(el);
+  // CSS grid position
+  div.style.gridColumn = el.group;
+  div.style.gridRow    = el.period;
+  grid.appendChild(div);
+});
+
+// Add f-block placeholder cells (period 6 col 3, period 7 col 3)
+[{r:6,c:3,label:'57–71',col:'#16A085'},{r:7,c:3,label:'89–103',col:'#D35400'}].forEach(ph => {
+  const div = document.createElement('div');
+  div.style.cssText = `grid-column:${ph.c};grid-row:${ph.r};border:1px dashed ${ph.col}44;background:${ph.col}0a;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.38rem;color:${ph.col};letter-spacing:.06em;height:56px`;
+  div.textContent = ph.label;
+  grid.appendChild(div);
+});
+
+// ── BUILD F-BLOCK ROWS ───────────────────────
+function buildFRow(container, elArr) {
+  // Cols 1-2 empty, col 3 used by label (handled in HTML), elements start col 3
+  // We place La at col 3, Ce at col 4 … Lu at col 17
+  const empty1 = emptyCell(); const empty2 = emptyCell();
+  container.appendChild(empty1); container.appendChild(empty2);
+  elArr.forEach((el, i) => {
+    const div = makeTile(el);
+    container.appendChild(div);
+  });
+  // fill remaining cols after f-block elements (col 18 = empty)
+  const remaining = 18 - 2 - elArr.length;
+  for (let i = 0; i < remaining; i++) container.appendChild(emptyCell());
+}
+buildFRow(document.getElementById('lant-row'), lantElements);
+buildFRow(document.getElementById('act-row'),  actElements);
+
+function emptyCell() {
+  const d = document.createElement('div');
+  d.style.cssText = 'height:56px;border:1px solid transparent;background:transparent';
+  return d;
+}
+
+// ── MAKE TILE ────────────────────────────────
+function makeTile(el) {
+  const div = document.createElement('div');
+  div.className = 'element';
+  div.dataset.cat    = el.category;
+  div.dataset.number = el.number;
+  div.style.borderTop = `3px solid ${CC[el.category] || '#888'}`;
+  div.innerHTML = `
+    <span class="el-num">${el.number}</span>
+    <span class="el-sym" style="color:${CC[el.category]||'var(--text)'}">${el.symbol}</span>
+    <span class="el-name">${el.name}</span>
+    <span class="el-mass">${el.atomicMass}</span>
+    <button class="cmp-btn" onclick="toggleCmp(event,${el.number})" title="Add to compare"></button>`;
+  div.addEventListener('click', () => openEl(el));
+  div.addEventListener('mouseenter', e => showTip(e, el));
+  div.addEventListener('mouseleave', hideTip);
+  tiles[el.number] = div;
+  return div;
+}
+
+/* ── HOVER TOOLTIP ── */
+const tooltip = document.getElementById('el-tooltip');
+let tipTimer;
+function showTip(e, el) {
+  clearTimeout(tipTimer);
+  tipTimer = setTimeout(() => {
+    tooltip.innerHTML = `
+      <div class="tt-num">No. ${el.number}</div>
+      <div class="tt-sym">${el.symbol}</div>
+      <div class="tt-name">${el.name}</div>
+      <div class="tt-cat" style="color:${CC[el.category]}">${CN[el.category]||el.category}</div>`;
+    tooltip.classList.add('show');
+  }, 55);
+}
+function hideTip() { clearTimeout(tipTimer); tooltip.classList.remove('show'); }
+document.addEventListener('mousemove', e => {
+  tooltip.style.left = Math.min(e.clientX + 14, window.innerWidth - 205) + 'px';
+  tooltip.style.top  = Math.max(e.clientY - 95, 8) + 'px';
+});
+
+/* ── SEARCH ── */
+document.getElementById('pt-search').addEventListener('input', function () {
+  const q = this.value.trim().toLowerCase();
+  if (!q) { resetDim(); updateCount(118); return; }
+  let n = 0;
+  Object.values(tiles).forEach(div => {
+    const el = ELEMENTS.find(e => tiles[e.number] === div); if (!el) return;
+    const match = el.name.toLowerCase().includes(q)
+                || el.symbol.toLowerCase() === q
+                || el.symbol.toLowerCase().includes(q)
+                || String(el.number) === q;
+    div.classList.toggle('dimmed',  !match);
+    div.classList.toggle('highlighted', match);
+    if (match) n++;
+  });
+  updateCount(n, 'matched');
+});
+
+/* ── FILTER ── */
+let activeCat = 'all';
+document.getElementById('filter-btns').addEventListener('click', e => {
+  const btn = e.target.closest('.flt'); if (!btn) return;
+  activateFilter(btn.dataset.cat, btn);
+});
+
+function activateFilter(cat, clickedBtn) {
+  activeCat = cat;
+  document.querySelectorAll('.flt').forEach(b => {
+    const isCat = b.dataset.cat === cat;
+    b.classList.toggle('on', isCat);
+    if (isCat) {
+      b.style.background = cat === 'all' ? 'var(--primary)' : (CC[cat] || 'var(--primary)');
+      b.style.borderColor = 'transparent';
+      b.style.color = '#fff';
+    } else {
+      b.style.background = ''; b.style.borderColor = ''; b.style.color = '';
+    }
+  });
+  if (cat === 'all') { resetDim(); updateCount(118); return; }
+  let n = 0;
+  Object.values(tiles).forEach(div => {
+    const match = div.dataset.cat === cat;
+    div.classList.toggle('dimmed', !match);
+    if (match) n++;
+  });
+  updateCount(n, `${CN[cat]||cat}`);
+}
+
+function resetDim() { Object.values(tiles).forEach(d => { d.classList.remove('dimmed','highlighted'); }); }
+function updateCount(n, suffix='') { document.getElementById('pt-count').textContent = `${n} element${n!==1?'s':''}${suffix?' — '+suffix:''}`; }
+
+/* ── ELEMENT DETAIL PANEL ── */
+let curEl = null;
+const panel = document.getElementById('el-panel');
+
+function openEl(el) {
+  curEl = el;
+  Object.values(tiles).forEach(d => d.classList.remove('selected'));
+  if (tiles[el.number]) tiles[el.number].classList.add('selected');
+
+  panel.innerHTML = `
+    <div class="ep-left">
+      <div class="ep-num">Atomic No. ${el.number}</div>
+      <div class="ep-sym">${el.symbol}</div>
+      <div class="ep-name">${el.name}</div>
+      <div class="ep-cat" style="color:${CC[el.category]}99">${CN[el.category]||el.category}</div>
+      <div class="ep-cfg">
+        <div style="opacity:.45;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.15rem">Electron Config</div>
+        ${el.electronConfig}
+      </div>
+    </div>
+    <div class="ep-right">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+        <h2 style="font-size:1.45rem;margin:0;color:var(--primary)">${el.name}</h2>
+        <button class="ep-close" onclick="closeEl()">✕ Close</button>
+      </div>
+      <div class="ep-facts">
+        <div><div class="epf-l">Atomic Mass</div><div class="epf-v">${el.atomicMass} u</div></div>
+        <div><div class="epf-l">Period / Group</div><div class="epf-v">${el.period <= 8 ? el.period : (el.period===9?6:7)} / ${el.group}</div></div>
+        <div><div class="epf-l">Melting Point</div><div class="epf-v">${el.melt}°C</div></div>
+        <div><div class="epf-l">Boiling Point</div><div class="epf-v">${el.boil}°C</div></div>
+        <div><div class="epf-l">Density (g/cm³)</div><div class="epf-v">${el.density}</div></div>
+        <div><div class="epf-l">Category</div><div class="epf-v" style="font-family:var(--mono);font-size:.75rem">${CN[el.category]||el.category}</div></div>
+      </div>
+      <div class="ep-uses">${el.uses}</div>
+      <div class="ep-actions">
+        <button class="ep-link" onclick="toggleCmp(null,${el.number})">+ Add to Compare</button>
+        <a class="ep-link" href="reactions.html">→ Reactions</a>
+        <a class="ep-link" href="glossary.html">→ Glossary</a>
+        <a class="ep-link" href="compounds.html">→ Compounds</a>
+      </div>
+    </div>`;
+  panel.className = 'open';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function closeEl() {
+  panel.className = ''; panel.innerHTML = '';
+  Object.values(tiles).forEach(d => d.classList.remove('selected'));
+}
+
+/* ── COMPARE TOOL ── */
+let cmpList = [];
+const cmpPanel  = document.getElementById('cmp-panel');
+const cmpStatus = document.getElementById('cmp-status');
+
+function toggleCmp(e, n) {
+  if (e) e.stopPropagation();
+  const idx = cmpList.indexOf(n);
+  if (idx > -1) {
+    cmpList.splice(idx, 1);
+    if (tiles[n]) tiles[n].classList.remove('compare-sel');
+  } else {
+    if (cmpList.length >= 2) {
+      const old = cmpList.shift();
+      if (tiles[old]) tiles[old].classList.remove('compare-sel');
+    }
+    cmpList.push(n);
+    if (tiles[n]) tiles[n].classList.add('compare-sel');
+  }
+  updateCmpStatus();
+  if (cmpList.length === 2) renderCmp();
+  else { cmpPanel.className = ''; cmpPanel.innerHTML = ''; }
+}
+
+function updateCmpStatus() {
+  if (!cmpList.length) { cmpStatus.style.display = 'none'; return; }
+  cmpStatus.style.display = 'block';
+  const syms = cmpList.map(n => ELEMENTS.find(e => e.number === n)?.symbol || n);
+  cmpStatus.textContent = cmpList.length === 1
+    ? `Comparing: ${syms[0]} — select one more element`
+    : `Comparing: ${syms[0]} vs ${syms[1]}`;
+}
+
+function renderCmp() {
+  const [a, b] = cmpList.map(n => ELEMENTS.find(e => e.number === n));
+  if (!a || !b) return;
+
+  function row(lbl, va, vb, max) {
+    const bw = max ? `<div class="cp-bw"><div class="cp-bar" data-w="${Math.min(100, (parseFloat(va)/max*100)||0)}"></div></div>` : '';
+    return `<div class="cp-row"><div class="cp-key">${lbl}</div><div class="cp-val">${va}</div>${bw}</div>`;
+  }
+
+  cmpPanel.innerHTML = `
+    <div class="cph">
+      ELEMENT COMPARISON · ${a.symbol} vs ${b.symbol}
+      <button class="cpclose" onclick="clearCmp()">✕</button>
+    </div>
+    <div class="cpb">
+      <div class="cpc">
+        <div class="cp-sym">${a.symbol}</div>
+        <div class="cp-nm">${a.name}</div>
+        ${row('Atomic Number', a.number, b.number, 118)}
+        ${row('Atomic Mass (u)', a.atomicMass, b.atomicMass, 294)}
+        ${row('Period', a.period <= 8 ? a.period : (a.period===9?6:7), b.period <= 8 ? b.period : (b.period===9?6:7), 7)}
+        ${row('Group', a.group, b.group, 18)}
+        ${row('Melting Pt (°C)', a.melt, b.melt, null)}
+        ${row('Boiling Pt (°C)', a.boil, b.boil, null)}
+        ${row('Density', a.density, b.density, null)}
+        ${row('Electron Config', a.electronConfig, b.electronConfig, null)}
+      </div>
+      <div class="cpvs">vs</div>
+      <div class="cpc">
+        <div class="cp-sym">${b.symbol}</div>
+        <div class="cp-nm">${b.name}</div>
+        ${row('Atomic Number', b.number, a.number, 118)}
+        ${row('Atomic Mass (u)', b.atomicMass, a.atomicMass, 294)}
+        ${row('Period', b.period <= 8 ? b.period : (b.period===9?6:7), a.period <= 8 ? a.period : (a.period===9?6:7), 7)}
+        ${row('Group', b.group, a.group, 18)}
+        ${row('Melting Pt (°C)', b.melt, a.melt, null)}
+        ${row('Boiling Pt (°C)', b.boil, a.boil, null)}
+        ${row('Density', b.density, a.density, null)}
+        ${row('Electron Config', b.electronConfig, a.electronConfig, null)}
+      </div>
+    </div>`;
+
+  cmpPanel.className = 'open';
+  setTimeout(() => {
+    document.querySelectorAll('.cp-bar').forEach(bar => {
+      bar.style.width = (bar.dataset.w || 0) + '%';
+    });
+  }, 100);
+  cmpPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function clearCmp() {
+  cmpList.forEach(n => { if (tiles[n]) tiles[n].classList.remove('compare-sel'); });
+  cmpList = [];
+  cmpPanel.className = ''; cmpPanel.innerHTML = '';
+  cmpStatus.style.display = 'none';
+}
+
+/* ── TREND CHARTS ── */
+const TRENDS = {
+  en:   { label:'Electronegativity (Pauling)', note:'Increases left→right across periods. Decreases down groups. F = 3.98 (highest).', syms:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'], vals:[2.20,0,.98,1.57,2.04,2.55,3.04,3.44,3.98,0,.93,1.31,1.61,1.9,2.19,2.58,3.16,0,.82,1.0] },
+  ie:   { label:'First Ionisation Energy (kJ/mol)', note:'Generally increases across period. Noble gases highest; alkali metals lowest.', syms:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'], vals:[1312,2372,520,900,800,1086,1402,1314,1681,2081,496,738,577,786,1012,1000,1251,1521,419,590] },
+  ar:   { label:'Atomic Radius (pm)', note:'Decreases across period (more protons, same shells). Increases down group (new shells).', syms:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'], vals:[53,31,167,112,87,67,56,48,42,38,190,145,118,111,98,88,79,71,243,194] },
+  mass: { label:'Atomic Mass (u)', note:'Generally increases with atomic number. A few exceptions exist (Ar/K, Co/Ni, Te/I).', syms:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'], vals:[1.008,4.003,6.941,9.012,10.811,12.011,14.007,15.999,18.998,20.18,22.99,24.305,26.982,28.086,30.974,32.065,35.453,39.948,39.098,40.078] }
+};
+let trendChart = null;
+
+function loadTrend(key) {
+  const d = TRENDS[key];
+  if (!window.Chart) return;
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(document.getElementById('trend-canvas'), {
+    type: 'bar',
+    data: {
+      labels: d.syms,
+      datasets: [{
+        label: d.label,
+        data: d.vals,
+        backgroundColor: d.vals.map((v, i) => v === 0 ? 'rgba(159,122,234,.07)' : `rgba(90,79,207,${.38 + i/d.vals.length * .48})`),
+        borderColor: d.vals.map(v => v === 0 ? 'rgba(159,122,234,.1)' : 'rgba(90,79,207,.8)'),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 600, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(45,27,105,.95)',
+          titleFont: { family: 'JetBrains Mono', size: 11 },
+          bodyFont: { family: 'JetBrains Mono', size: 10 },
+          callbacks: { label: i => i.raw === 0 ? 'Noble gas — no standard value' : `${d.label}: ${i.raw}` }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(45,27,105,.06)' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#6B6580' } },
+        y: { grid: { color: 'rgba(45,27,105,.06)' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#6B6580' } }
+      }
+    }
+  });
+  document.getElementById('trend-note').textContent = d.note;
+}
+
+document.querySelectorAll('.trend-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.trend-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    loadTrend(tab.dataset.trend);
+  });
+});
+
+// Load Chart.js then draw
+if (!window.Chart) {
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+  s.onload = () => loadTrend('en');
+  document.head.appendChild(s);
+} else {
+  loadTrend('en');
+}
+</script>
+</body>
+</html>
