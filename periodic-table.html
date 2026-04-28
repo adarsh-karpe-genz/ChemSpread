@@ -1093,18 +1093,43 @@ body { padding-top: 58px; }
 <div id="trend-section">
   <div class="container">
     <div class="reveal" style="margin-bottom:1.4rem">
-      <span class="label">Periodic Trends · Periods 1–4</span>
+      <span class="label">Periodic Trends · All 118 Elements</span>
       <h2 style="margin-top:.3rem">Element Property Trends</h2>
-      <p style="font-size:.87rem;color:var(--text-muted);margin-top:.3rem">How element properties vary systematically across periods and down groups.</p>
+      <p style="font-size:.87rem;color:var(--text-muted);margin-top:.3rem">How element properties vary systematically across periods and down groups. Turn the chart from a graph into an exploration tool.</p>
     </div>
-    <div class="trend-tabs">
-      <button class="trend-tab active" data-trend="en">Electronegativity</button>
-      <button class="trend-tab" data-trend="ie">Ionisation Energy</button>
-      <button class="trend-tab" data-trend="ar">Atomic Radius</button>
-      <button class="trend-tab" data-trend="mass">Atomic Mass</button>
+    
+    <!-- CONTROLS PANEL -->
+    <div class="trend-controls" style="background:var(--bg); border:1px solid var(--border); padding:1rem; margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:1rem; justify-content:space-between; align-items:center;">
+      
+      <!-- Property Tabs -->
+      <div class="trend-tabs" style="margin:0; border:none; display:flex;">
+        <button class="trend-tab active" data-trend="atomicRadius" style="border:1px solid var(--border); border-right:none;">Atomic Radius</button>
+        <button class="trend-tab" data-trend="electronegativity" style="border:1px solid var(--border); border-right:none;">Electronegativity</button>
+        <button class="trend-tab" data-trend="ionizationEnergy" style="border:1px solid var(--border); border-right:none;">Ionization Energy</button>
+        <button class="trend-tab" data-trend="atomicMass" style="border:1px solid var(--border);">Atomic Mass</button>
+      </div>
+      
+      <!-- Filters -->
+      <div class="trend-filters" style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+        <select id="trend-view-mode" style="padding:0.4rem; background:var(--bg-alt); border:1px solid var(--border); font-family:var(--mono); font-size:0.7rem; color:var(--text); outline:none;">
+          <option value="all">Full Table Trend</option>
+          <option value="period">Period Trend</option>
+          <option value="group">Group Trend</option>
+          <option value="block">Block Trend</option>
+          <option value="compare">Comparison Mode</option>
+        </select>
+        
+        <select id="trend-sub-filter" style="display:none; padding:0.4rem; background:var(--bg-alt); border:1px solid var(--border); font-family:var(--mono); font-size:0.7rem; color:var(--text); outline:none;">
+          <!-- Populated dynamically -->
+        </select>
+        
+        <button id="btn-explain-trend" class="btn-outline" style="padding:0.4rem 0.8rem; font-size:0.65rem;">Explain Trend</button>
+      </div>
     </div>
-    <div class="trend-chart-box"><canvas id="trend-canvas"></canvas></div>
-    <p id="trend-note" style="font-family:var(--mono);font-size:.64rem;color:var(--text-muted);margin-top:.7rem;letter-spacing:.04em"></p>
+    
+    <div class="trend-chart-box" style="height:400px; padding:1.5rem;"><canvas id="trend-canvas"></canvas></div>
+    
+    <div id="trend-explanation" style="display:none; margin-top:1rem; padding:1.2rem; background:rgba(90,79,207,0.05); border-left:3px solid var(--accent); font-size:0.9rem; color:var(--text-muted); line-height:1.6; animation:fadeSlideUp 0.3s ease;"></div>
   </div>
 </div>
 
@@ -1382,6 +1407,13 @@ function toggleCmp(e, n) {
   updateCmpStatus();
   if (cmpList.length === 2) renderCmp();
   else { cmpPanel.className = ''; cmpPanel.innerHTML = ''; }
+  
+  // Re-render trend chart if Comparison mode is active
+  if (typeof currentViewMode !== 'undefined' && currentViewMode === 'compare') {
+    if (typeof debouncedCreateTrendChart === 'function') {
+      debouncedCreateTrendChart();
+    }
+  }
 }
 
 function updateCmpStatus() {
@@ -1451,69 +1483,256 @@ function clearCmp() {
   cmpStatus.style.display = 'none';
 }
 
-/* ── TREND CHARTS ── */
-const TRENDS = {
-  en:   { label:'Electronegativity (Pauling)', note:'Increases left→right across periods. Decreases down groups. F = 3.98 (highest).', syms:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'], vals:[2.20,0,.98,1.57,2.04,2.55,3.04,3.44,3.98,0,.93,1.31,1.61,1.9,2.19,2.58,3.16,0,.82,1.0] },
-  ie:   { label:'First Ionisation Energy (kJ/mol)', note:'Generally increases across period. Noble gases highest; alkali metals lowest.', syms:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'], vals:[1312,2372,520,900,800,1086,1402,1314,1681,2081,496,738,577,786,1012,1000,1251,1521,419,590] },
-  ar:   { label:'Atomic Radius (pm)', note:'Decreases across period (more protons, same shells). Increases down group (new shells).', syms:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'], vals:[53,31,167,112,87,67,56,48,42,38,190,145,118,111,98,88,79,71,243,194] },
-  mass: { label:'Atomic Mass (u)', note:'Generally increases with atomic number. A few exceptions exist (Ar/K, Co/Ni, Te/I).', syms:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'], vals:[1.008,4.003,6.941,9.012,10.811,12.011,14.007,15.999,18.998,20.18,22.99,24.305,26.982,28.086,30.974,32.065,35.453,39.948,39.098,40.078] }
-};
+/* ── TREND CHARTS ENGINE ── */
 let trendChart = null;
+let currentTrendProp = 'atomicRadius';
+let currentTrendLabel = 'Atomic Radius (pm)';
+let currentViewMode = 'all';
+let currentSubFilter = '1';
 
-function loadTrend(key) {
-  const d = TRENDS[key];
+const trendExplanations = {
+  atomicRadius: `<strong>Atomic Radius</strong> is the distance from the nucleus to the outermost stable electron shell.
+    <ul>
+      <li><strong>Across a Period:</strong> Decreases. As protons are added to the nucleus, the "effective nuclear charge" increases, pulling electrons closer.</li>
+      <li><strong>Down a Group:</strong> Increases. New electron shells are added (higher principal quantum number), moving the valence electrons further from the nucleus.</li>
+    </ul>`,
+  electronegativity: `<strong>Electronegativity</strong> measures an atom's ability to attract shared electrons in a chemical bond.
+    <ul>
+      <li><strong>Across a Period:</strong> Increases. Higher nuclear charge and smaller atomic size make the nucleus more effective at attracting electrons.</li>
+      <li><strong>Down a Group:</strong> Decreases. Increased distance from the nucleus and "electron shielding" reduce the pull on shared electrons.</li>
+      <li><em>Note: Noble gases often have undefined electronegativity as they rarely form bonds.</em></li>
+    </ul>`,
+  ionizationEnergy: `<strong>First Ionization Energy</strong> is the energy required to remove the most loosely bound electron from a neutral atom.
+    <ul>
+      <li><strong>Across a Period:</strong> Increases. Electrons are held more tightly by the increasing nuclear charge.</li>
+      <li><strong>Down a Group:</strong> Decreases. Valence electrons are further away and more shielded, making them easier to remove.</li>
+      <li><strong>Anomalies:</strong> Slight drops occur when a new subshell starts (e.g., s to p) or when electrons start pairing in an orbital.</li>
+    </ul>`,
+  atomicMass: `<strong>Atomic Mass</strong> represents the average mass of an element's atoms, including isotopes.
+    <ul>
+      <li><strong>Trend:</strong> Generally increases with atomic number as more protons and neutrons are added.</li>
+      <li><strong>Exceptions:</strong> Occasionally, an element with a higher atomic number has a lower mass (like Argon vs. Potassium) due to the specific distribution of isotopes in nature.</li>
+    </ul>`
+};
+
+function getBlock(el) {
+  if (el.group === 1 || el.group === 2 || el.symbol === 'He') return 's';
+  if (el.group >= 13 && el.group <= 18 && el.symbol !== 'He') return 'p';
+  if (el.group >= 3 && el.group <= 12 && el.category !== 'lanthanide' && el.category !== 'actinide') return 'd';
+  if (el.category === 'lanthanide' || el.category === 'actinide') return 'f';
+  return 's'; // fallback
+}
+
+function getFilteredElements() {
+  let list = ELEMENTS.filter(el => {
+    // We treat 'null' string as null (because we wrote 'null' in the python script)
+    return el[currentTrendProp] !== null && el[currentTrendProp] !== 'null';
+  });
+  
+  if (currentViewMode === 'period') list = list.filter(el => String(el.period) === currentSubFilter);
+  else if (currentViewMode === 'group') list = list.filter(el => String(el.group) === currentSubFilter);
+  else if (currentViewMode === 'block') list = list.filter(el => getBlock(el) === currentSubFilter);
+  else if (currentViewMode === 'compare') {
+    if (cmpList.length > 0) {
+      list = list.filter(el => cmpList.includes(el.number));
+    } else {
+      list = []; // Empty if nothing to compare
+    }
+  }
+  return list;
+}
+
+// Debounce filter changes
+let trendDebounceTimer;
+function debouncedCreateTrendChart() {
+  clearTimeout(trendDebounceTimer);
+  trendDebounceTimer = setTimeout(createTrendChart, 50);
+}
+
+function createTrendChart() {
   if (!window.Chart) return;
+  const ctx = document.getElementById("trend-canvas").getContext("2d");
+  
+  const filtered = getFilteredElements();
+  
+  // Color coding based on category
+  const bgColors = filtered.map(el => {
+    if (el.category === 'noble-gas') return 'rgba(41, 128, 185, 0.8)';
+    if (el.category === 'nonmetal' || el.category === 'halogen') return 'rgba(159, 122, 234, 0.6)';
+    if (el.category.includes('metal')) return 'rgba(90, 79, 207, 0.8)';
+    return 'rgba(107, 101, 128, 0.6)'; // fallback
+  });
+  
+  const data = {
+    labels: filtered.map(el => el.symbol),
+    datasets: [{
+      label: currentTrendLabel,
+      data: filtered.map(el => parseFloat(el[currentTrendProp])),
+      backgroundColor: bgColors,
+      borderColor: bgColors.map(c => c.replace(/[\d\.]+\)$/g, '1)')),
+      borderWidth: 1,
+      tension: 0.3,
+      fill: true,
+      backgroundColor: (context) => {
+        const chart = context.chart;
+        const {ctx, chartArea} = chart;
+        if (!chartArea) return null;
+        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+        gradient.addColorStop(0, 'rgba(90, 79, 207, 0.05)');
+        gradient.addColorStop(1, 'rgba(159, 122, 234, 0.2)');
+        return gradient;
+      },
+      pointRadius: currentViewMode === 'all' ? 2 : 5,
+      pointHoverRadius: 8,
+      pointBackgroundColor: bgColors.map(c => c.replace(/[\d\.]+\)$/g, '1)')),
+    }]
+  };
+  
   if (trendChart) trendChart.destroy();
-  trendChart = new Chart(document.getElementById('trend-canvas'), {
-    type: 'bar',
-    data: {
-      labels: d.syms,
-      datasets: [{
-        label: d.label,
-        data: d.vals,
-        backgroundColor: d.vals.map((v, i) => v === 0 ? 'rgba(159,122,234,.07)' : `rgba(90,79,207,${.38 + i/d.vals.length * .48})`),
-        borderColor: d.vals.map(v => v === 0 ? 'rgba(159,122,234,.1)' : 'rgba(90,79,207,.8)'),
-        borderWidth: 1
-      }]
-    },
+  
+  // Decide chart type: Line is good for trends across period/group, bar for compare/all
+  let chartType = 'line';
+  if (currentViewMode === 'all' || currentViewMode === 'compare') chartType = 'bar';
+
+  trendChart = new Chart(ctx, {
+    type: chartType,
+    data: data,
     options: {
-      responsive: true, maintainAspectRatio: false,
-      animation: { duration: 600, easing: 'easeOutQuart' },
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 800, easing: 'easeOutQuart' },
       plugins: {
         legend: { display: false },
         tooltip: {
           backgroundColor: 'rgba(45,27,105,.95)',
-          titleFont: { family: 'JetBrains Mono', size: 11 },
-          bodyFont: { family: 'JetBrains Mono', size: 10 },
-          callbacks: { label: i => i.raw === 0 ? 'Noble gas — no standard value' : `${d.label}: ${i.raw}` }
+          titleFont: { family: 'JetBrains Mono', size: 12, weight: 'bold' },
+          bodyFont: { family: 'JetBrains Mono', size: 11 },
+          padding: 12,
+          cornerRadius: 4,
+          callbacks: {
+            title: ctx => {
+              const el = filtered[ctx[0].dataIndex];
+              return `${el.symbol} - ${el.name}`;
+            },
+            label: ctx => `${currentTrendLabel}: ${ctx.raw} ${getUnit(currentTrendProp)}`
+          }
         }
       },
       scales: {
-        x: { grid: { color: 'rgba(45,27,105,.06)' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#6B6580' } },
-        y: { grid: { color: 'rgba(45,27,105,.06)' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#6B6580' } }
+        x: { 
+          grid: { display: false }, 
+          ticks: { 
+            font: { family: 'JetBrains Mono', size: currentViewMode === 'all' ? 7 : 10 }, 
+            color: '#6B6580',
+            maxRotation: 90,
+            minRotation: currentViewMode === 'all' ? 90 : 0
+          } 
+        },
+        y: { 
+          grid: { color: 'rgba(45,27,105,.04)' }, 
+          ticks: { 
+            font: { family: 'JetBrains Mono', size: 10 }, 
+            color: '#6B6580'
+          },
+          title: {
+            display: true,
+            text: getUnit(currentTrendProp),
+            font: { family: 'JetBrains Mono', size: 10, weight: 'bold' },
+            color: '#6B6580'
+          }
+        }
+      },
+      onClick: (e, activeElements) => {
+        if (activeElements.length > 0) {
+          const idx = activeElements[0].index;
+          const el = filtered[idx];
+          openEl(el);
+        }
       }
     }
   });
-  document.getElementById('trend-note').textContent = d.note;
 }
 
+function getUnit(prop) {
+  if (prop === 'atomicRadius') return 'pm';
+  if (prop === 'electronegativity') return '(Pauling)';
+  if (prop === 'ionizationEnergy') return 'kJ/mol';
+  if (prop === 'atomicMass') return 'u';
+  return '';
+}
+
+// UI Event Listeners
 document.querySelectorAll('.trend-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.trend-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
-    loadTrend(tab.dataset.trend);
+    currentTrendProp = tab.dataset.trend;
+    currentTrendLabel = tab.textContent;
+    
+    // Update explanation if it's open
+    const expDiv = document.getElementById('trend-explanation');
+    if (expDiv.style.display === 'block') {
+      expDiv.innerHTML = trendExplanations[currentTrendProp] || '';
+    }
+    
+    debouncedCreateTrendChart();
   });
+});
+
+const viewModeSelect = document.getElementById('trend-view-mode');
+const subFilterSelect = document.getElementById('trend-sub-filter');
+
+viewModeSelect.addEventListener('change', (e) => {
+  currentViewMode = e.target.value;
+  subFilterSelect.innerHTML = '';
+  
+  if (currentViewMode === 'period') {
+    subFilterSelect.style.display = 'inline-block';
+    [1,2,3,4,5,6,7].forEach(p => subFilterSelect.add(new Option(`Period ${p}`, p)));
+    currentSubFilter = '1';
+  } else if (currentViewMode === 'group') {
+    subFilterSelect.style.display = 'inline-block';
+    for (let g=1; g<=18; g++) subFilterSelect.add(new Option(`Group ${g}`, g));
+    currentSubFilter = '1';
+  } else if (currentViewMode === 'block') {
+    subFilterSelect.style.display = 'inline-block';
+    ['s','p','d','f'].forEach(b => subFilterSelect.add(new Option(`${b}-block`, b)));
+    currentSubFilter = 's';
+  } else {
+    subFilterSelect.style.display = 'none';
+  }
+  debouncedCreateTrendChart();
+});
+
+subFilterSelect.addEventListener('change', (e) => {
+  currentSubFilter = e.target.value;
+  debouncedCreateTrendChart();
+});
+
+document.getElementById('btn-explain-trend').addEventListener('click', () => {
+  const expDiv = document.getElementById('trend-explanation');
+  expDiv.innerHTML = trendExplanations[currentTrendProp] || '';
+  expDiv.style.display = expDiv.style.display === 'block' ? 'none' : 'block';
 });
 
 // Load Chart.js then draw
 if (!window.Chart) {
   const s = document.createElement('script');
   s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
-  s.onload = () => loadTrend('en');
+  s.onload = () => debouncedCreateTrendChart();
   document.head.appendChild(s);
 } else {
-  loadTrend('en');
+  debouncedCreateTrendChart();
 }
+
+// Hook into compare feature to update chart if in compare mode
+const originalToggleCmp = toggleCmp;
+toggleCmp = function(e, n) {
+  originalToggleCmp(e, n);
+  if (currentViewMode === 'compare') {
+    debouncedCreateTrendChart();
+  }
+};
 </script>
 </body>
 </html>

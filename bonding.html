@@ -891,8 +891,8 @@ body { padding-top:58px; }
   </ul>
 </div>
 
-<!-- VIZ TABS -->
 <div class="viz-tabs">
+  <button class="viz-tab" onclick="switchMode('interactive',this)">🧪 Interactive</button>
   <button class="viz-tab active" onclick="switchMode('ionic',this)">⚡ Ionic Bonding</button>
   <button class="viz-tab" onclick="switchMode('covalent',this)">🔗 Covalent Bonding</button>
   <button class="viz-tab" onclick="switchMode('metallic',this)">✨ Metallic Bonding</button>
@@ -912,29 +912,68 @@ body { padding-top:58px; }
       <button class="mol-btn" onclick="selectMol('N2',this)">N₂ · Nitrogen (triple)</button>
     </div>
 
-    <div class="canvas-wrap">
+    <!-- Interactive builder (interactive mode) -->
+    <div id="interactive-sel" style="display:none; padding:1.5rem; background:var(--bg-alt); border:1px solid var(--border); border-radius:8px; margin-bottom:1.5rem;">
+      <div style="font-family:var(--mono); font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:1rem; letter-spacing:1px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Interactive Bonding Engine</span>
+        <span style="font-size:0.6rem; opacity:0.7;">Rule-based Simulation</span>
+      </div>
+      
+      <div style="display:grid; grid-template-columns: 1fr 240px; gap:2rem;">
+        <div>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:0.8rem; text-transform:uppercase; letter-spacing:0.5px;">Element Palette (Drag these)</div>
+          <div id="element-palette" style="display:flex; flex-wrap:wrap; gap:0.6rem; margin-bottom:1.5rem;">
+            <!-- Will be populated by JS -->
+          </div>
+          
+          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; font-family:var(--mono); font-size:0.75rem;">
+            <span style="color:var(--text-muted); text-transform:uppercase;">Common Pairs:</span>
+            <button class="mol-btn" onclick="setInteractivePreset('Na','Cl')">NaCl (Ionic)</button>
+            <button class="mol-btn" onclick="setInteractivePreset('H','H')">H₂ (Nonpolar)</button>
+            <button class="mol-btn" onclick="setInteractivePreset('O','H')">OH⁻ (Polar)</button>
+            <button class="mol-btn" onclick="setInteractivePreset('Mg','O')">MgO (Ionic)</button>
+          </div>
+        </div>
+
+        <div style="border-left:1px solid var(--border); padding-left:1.5rem;">
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:0.8rem; text-transform:uppercase;">Custom Selection</div>
+          <div style="display:flex; flex-direction:column; gap:1rem;">
+            <div>
+              <label for="sel-el1" style="font-size:0.65rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Atom A</label>
+              <select id="sel-el1" onchange="updatePaletteSelection(1)" style="width:100%; padding:0.5rem; border:1px solid var(--border); background:var(--bg); font-family:var(--mono); font-size:0.8rem;"></select>
+            </div>
+            <div>
+              <label for="sel-el2" style="font-size:0.65rem; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Atom B</label>
+              <select id="sel-el2" onchange="updatePaletteSelection(2)" style="width:100%; padding:0.5rem; border:1px solid var(--border); background:var(--bg); font-family:var(--mono); font-size:0.8rem;"></select>
+            </div>
+            <button class="btn-primary" style="width:100%; justify-content:center; padding:0.6rem;" onclick="triggerInteractiveBond()">Simulate Bond</button>
+            <button class="btn-outline" style="width:100%; justify-content:center; padding:0.5rem; font-size:0.6rem;" onclick="resetViz()">Clear Canvas</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="canvas-wrap" ondrop="dropCanvas(event)" ondragover="allowDropCanvas(event)">
       <canvas id="viz-canvas" height="380"></canvas>
       <div class="canvas-controls">
         <button class="ctrl-btn active-ctrl" id="btn-animate" onclick="toggleAnim()">⏸ Pause</button>
         <button class="ctrl-btn" onclick="resetViz()">↺ Reset</button>
         <button class="ctrl-btn" id="btn-labels" onclick="toggleLabels()">🏷 Labels ON</button>
         <button class="ctrl-btn" id="btn-slow" onclick="toggleSpeed()">🐢 Slow</button>
+        <button class="ctrl-btn" id="btn-explain" onclick="explainBond()" style="display:none; background:rgba(159,122,234,0.2); border-color:var(--accent);">💡 Explain Bond</button>
         <span id="viz-step" style="font-family:var(--mono);font-size:.65rem;color:var(--text-muted);align-self:center;margin-left:.3rem"></span>
       </div>
     </div>
 
-    <!-- Comparison table (comparison mode) -->
     <div id="comparison-table" class="bond-comparison reveal" style="display:none">
-      <div class="bc-head"><div>Property</div><div>Ionic Bond</div><div>Covalent Bond</div></div>
-      <div class="bc-row"><div>Formation</div><div>Electron TRANSFER</div><div>Electron SHARING</div></div>
-      <div class="bc-row"><div>Electronegativity diff.</div><div>&gt; 1.7 (large)</div><div>&lt; 1.7 (small)</div></div>
-      <div class="bc-row"><div>Between</div><div>Metal + Non-metal</div><div>Non-metals</div></div>
-      <div class="bc-row"><div>Melting point</div><div>HIGH (801°C for NaCl)</div><div>LOW-MED (e.g. -183°C O₂)</div></div>
-      <div class="bc-row"><div>Conducts electricity</div><div>Only molten/dissolved</div><div>Never (usually)</div></div>
-      <div class="bc-row"><div>Solubility (water)</div><div>Usually soluble</div><div>Varies (polar: yes; non-polar: no)</div></div>
-      <div class="bc-row"><div>Structure</div><div>Giant ionic lattice</div><div>Simple or giant covalent</div></div>
-      <div class="bc-row"><div>Examples</div><div>NaCl, MgO, CaCl₂</div><div>H₂O, CO₂, SiO₂, C (diamond)</div></div>
-      <div class="bc-row"><div>Bond direction</div><div>Non-directional (spherical)</div><div>Directional (fixed angle)</div></div>
+      <div class="bc-head" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Property</div><div>Ionic</div><div>Covalent</div><div>Metallic</div></div>
+      <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Formation</div><div>Transfer</div><div>Sharing</div><div>Delocalisation</div></div>
+      <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Electronegativity diff.</div><div>&gt; 1.7</div><div>&lt; 1.7</div><div>Small (both low)</div></div>
+      <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Between</div><div>Metal + Non-metal</div><div>Non-metals</div><div>Metals</div></div>
+      <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Melting point</div><div>High</div><div>Low-Med</div><div>High</div></div>
+      <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Conductivity</div><div>Only liquid/aq</div><div>None</div><div>High (Solid/Liq)</div></div>
+      <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Malleability</div><div>Brittle</div><div>Varies</div><div>Malleable/Ductile</div></div>
+      <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Examples</div><div>NaCl, MgO</div><div>H₂O, CO₂</div><div>Cu, Fe, Al</div></div>
     </div>
   </div>
 
@@ -1041,9 +1080,14 @@ resizeCanvas();
 function switchMode(m, btn) {
   mode = m;
   animFrame = 0;
+  interactiveState.stage = 0;
+  interactiveState.el1 = null;
+  interactiveState.el2 = null;
   document.querySelectorAll('.viz-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('mol-sel').style.display = (m === 'covalent') ? 'grid' : 'none';
+  document.getElementById('interactive-sel').style.display = (m === 'interactive') ? 'block' : 'none';
+  document.getElementById('btn-explain').style.display = (m === 'interactive') ? 'inline-block' : 'none';
   document.getElementById('comparison-table').style.display = (m === 'comparison') ? 'block' : 'none';
   updateInfoPanel();
   drawEnergy();
@@ -1064,7 +1108,27 @@ function toggleAnim() {
   document.getElementById('btn-animate').classList.toggle('active-ctrl', animRunning);
   if (animRunning) loop();
 }
-function resetViz() { animFrame = 0; }
+function resetViz() { 
+  animFrame = 0; 
+  if (mode === 'interactive') {
+    interactiveState.stage = 0;
+    interactiveState.el1 = null;
+    interactiveState.el2 = null;
+    interactiveState.bondType = '';
+    interactiveState.diff = 0;
+    document.getElementById('btn-explain').style.display = 'none';
+    updateInteractiveInfo("Select elements and click Bond, or drag them here.");
+    // Clear info panel content for interactive mode
+    document.getElementById('info-title').textContent = "Interactive Bonding";
+    document.getElementById('info-sub').textContent = "Select elements to begin";
+    document.getElementById('info-what').textContent = "Drag two atoms into the canvas area to simulate their interaction.";
+    document.getElementById('info-why').textContent = "";
+    document.getElementById('info-formula').innerHTML = "";
+    document.getElementById('info-props').textContent = "";
+    document.getElementById('info-mistake').textContent = "";
+    document.getElementById('info-real').textContent = "";
+  }
+}
 function toggleLabels() {
   showLabels = !showLabels;
   document.getElementById('btn-labels').textContent = showLabels ? '🏷 Labels ON' : '🏷 Labels OFF';
@@ -1511,6 +1575,410 @@ function updateInfoPanel() {
   drawEnergy();
 }
 
+// ── INTERACTIVE ENGINE ──
+let interactiveState = {
+  stage: 0,
+  el1: null,
+  el2: null,
+  bondType: '',
+  diff: 0
+};
+
+function initInteractive() {
+  const s1 = document.getElementById('sel-el1');
+  const s2 = document.getElementById('sel-el2');
+  s1.innerHTML = ''; s2.innerHTML = '';
+  
+  // Populate dropdowns
+  ELEMENTS.forEach(el => {
+    let opt1 = document.createElement('option');
+    opt1.value = el.symbol; opt1.textContent = `${el.symbol} - ${el.name}`;
+    s1.appendChild(opt1);
+    let opt2 = document.createElement('option');
+    opt2.value = el.symbol; opt2.textContent = `${el.symbol} - ${el.name}`;
+    s2.appendChild(opt2);
+  });
+  s1.value = 'Na'; s2.value = 'Cl';
+
+  // Populate palette with common elements
+  const commonSymbols = ['H', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'K', 'Ca'];
+  const palette = document.getElementById('element-palette');
+  palette.innerHTML = '';
+  
+  commonSymbols.forEach(sym => {
+    const el = ELEMENTS.find(e => e.symbol === sym);
+    if (!el) return;
+    
+    const div = document.createElement('div');
+    div.className = 'palette-atom';
+    div.draggable = true;
+    div.dataset.symbol = sym;
+    div.innerHTML = `<span style="font-size:0.8rem">${sym}</span>`;
+    div.style.cssText = `
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: ${el.category.includes('metal') ? 'rgba(230, 126, 34, 0.15)' : 'rgba(52, 152, 219, 0.15)'};
+      border: 1px solid ${el.category.includes('metal') ? '#e67e22' : '#3498db'};
+      cursor: grab; font-family: var(--mono); font-weight: bold;
+      transition: all 0.2s;
+    `;
+    
+    div.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData("text/plain", sym);
+      div.style.opacity = '0.5';
+    });
+    div.addEventListener('dragend', () => div.style.opacity = '1');
+    div.addEventListener('mouseover', () => {
+      div.style.transform = 'scale(1.1)';
+      div.style.boxShadow = '0 0 10px rgba(159,122,234,0.3)';
+    });
+    div.addEventListener('mouseout', () => {
+      div.style.transform = 'scale(1)';
+      div.style.boxShadow = 'none';
+    });
+    
+    palette.appendChild(div);
+  });
+}
+
+function updatePaletteSelection(num) {
+  // Optional: Highlight palette element if it matches dropdown
+}
+
+function drag(ev) {
+  ev.dataTransfer.setData("text/plain", ev.target.dataset.symbol || ev.target.textContent);
+}
+
+function allowDropCanvas(ev) {
+  if (mode !== 'interactive') return;
+  ev.preventDefault();
+  canvas.style.borderColor = 'var(--accent)';
+  canvas.style.background = 'rgba(159,122,234,0.05)';
+}
+
+function dropCanvas(ev) {
+  if (mode !== 'interactive') return;
+  ev.preventDefault();
+  canvas.style.borderColor = 'var(--border)';
+  canvas.style.background = 'var(--bg-alt)';
+  
+  const sym = ev.dataTransfer.getData("text/plain");
+  const el = ELEMENTS.find(e => e.symbol === sym);
+  if (!el) return;
+  
+  if (!interactiveState.el1) {
+    interactiveState.el1 = el;
+    interactiveState.stage = 1;
+    document.getElementById('sel-el1').value = sym;
+    updateInteractiveInfo("Added " + el.symbol + ". Now drag another element.");
+  } else if (!interactiveState.el2) {
+    interactiveState.el2 = el;
+    interactiveState.stage = 2;
+    document.getElementById('sel-el2').value = sym;
+    processInteractiveBond();
+  }
+}
+
+function triggerInteractiveBond() {
+  interactiveState.el1 = ELEMENTS.find(e => e.symbol === document.getElementById('sel-el1').value);
+  interactiveState.el2 = ELEMENTS.find(e => e.symbol === document.getElementById('sel-el2').value);
+  interactiveState.stage = 2;
+  processInteractiveBond();
+}
+
+function setInteractivePreset(sym1, sym2) {
+  if (mode !== 'interactive') {
+    switchMode('interactive', document.querySelector('.viz-tab[onclick*="interactive"]'));
+  }
+  document.getElementById('sel-el1').value = sym1;
+  document.getElementById('sel-el2').value = sym2;
+  interactiveState.stage = 0; // Reset stage to trigger fresh animation
+  triggerInteractiveBond();
+}
+
+function determineBond(el1, el2) {
+  if (!el1 || !el2) return null;
+  const c1 = el1.category || '';
+  const c2 = el2.category || '';
+  const metals = ['alkali', 'alkaline', 'transition', 'post', 'lanthanide', 'actinide'];
+  const isM1 = metals.includes(c1);
+  const isM2 = metals.includes(c2);
+  
+  if (isM1 && isM2) return "metallic";
+  
+  if (el1.electronegativity == null || el2.electronegativity == null) {
+      if (!isM1 && !isM2) return "nonpolar covalent";
+      return "ionic";
+  }
+  const diff = Math.abs(el1.electronegativity - el2.electronegativity);
+  if (diff > 1.7) return "ionic";
+  if (diff > 0.4) return "polar covalent";
+  return "nonpolar covalent";
+}
+
+function processInteractiveBond() {
+  const el1 = interactiveState.el1;
+  const el2 = interactiveState.el2;
+  interactiveState.bondType = determineBond(el1, el2);
+  interactiveState.diff = el1.electronegativity != null && el2.electronegativity != null 
+    ? Math.abs(el1.electronegativity - el2.electronegativity).toFixed(2)
+    : "N/A";
+  animFrame = 0;
+  
+  const type = interactiveState.bondType;
+  let formulaStr = "";
+  
+  if (type === 'ionic') {
+    const metal = el1.electronegativity < el2.electronegativity ? el1 : el2;
+    const nonmetal = el1.electronegativity < el2.electronegativity ? el2 : el1;
+    formulaStr = `${metal.symbol} → ${metal.symbol}⁺ + e⁻\n${nonmetal.symbol} + e⁻ → ${nonmetal.symbol}⁻\nResult: ${metal.symbol}${nonmetal.symbol}`;
+  } else if (type.includes('covalent')) {
+    formulaStr = `${el1.symbol}• + •${el2.symbol} → ${el1.symbol}:${el2.symbol}\nElectrons shared: 2\nType: ${type}`;
+  } else {
+    formulaStr = `${el1.symbol} + ${el2.symbol} → Metallic Lattice\n"Sea of electrons" formed.`;
+  }
+
+  // Update info dynamically
+  INFO_DATA['interactive'] = {
+    title: `Interactive: ${type.toUpperCase()}`,
+    sub: `${el1.name} + ${el2.name}`,
+    what: `${el1.name} has ${el1.valenceElectrons} valence electrons and electronegativity ${el1.electronegativity||'N/A'}. ${el2.name} has ${el2.valenceElectrons} valence electrons and electronegativity ${el2.electronegativity||'N/A'}.`,
+    why: type === 'ionic' ? `ΔEN is ${interactiveState.diff} (> 1.7). The large difference causes one or more electrons to be completely transferred from the metal to the non-metal.` :
+         type === 'metallic' ? `Both atoms are metals with low electronegativity. They pool their valence electrons into a delocalised sea.` :
+         `ΔEN is ${interactiveState.diff} (< 1.7). Neither atom is strong enough to take electrons away, so they share them to reach a stable configuration.`,
+    formula: formulaStr,
+    props: type === 'ionic' ? "High melting point, brittle, conducts when liquid." : 
+           type === 'metallic' ? "Conductive, malleable, lustrous." :
+           "Low melting point (simple), non-conductive.",
+    mistake: `Click "Explain Bond" for a detailed chemical breakdown of this specific pair.`,
+    real: `This specific interaction is governed by the octet rule and periodic trends.`
+  };
+  updateInfoPanel();
+  document.getElementById('btn-explain').style.display = 'inline-block';
+}
+
+function updateInteractiveInfo(msg) {
+  document.getElementById('info-sub').textContent = msg;
+}
+
+function explainBond() {
+  if (mode !== 'interactive' || !interactiveState.el1 || !interactiveState.el2) return;
+  
+  const el1 = interactiveState.el1;
+  const el2 = interactiveState.el2;
+  const type = interactiveState.bondType.toUpperCase();
+  const diff = interactiveState.diff;
+  
+  let explanation = `The bond between <strong>${el1.name}</strong> and <strong>${el2.name}</strong> is classified as <strong>${type}</strong>.<br><br>`;
+  
+  if (interactiveState.bondType === 'ionic') {
+    explanation += `<strong>Reason:</strong> The electronegativity difference (ΔEN) is <strong>${diff}</strong>, which is greater than 1.7. This high difference means ${el2.electronegativity > el1.electronegativity ? el2.name : el1.name} has a much stronger pull on electrons, leading to a complete transfer of one or more electrons.`;
+  } else if (interactiveState.bondType === 'polar covalent') {
+    explanation += `<strong>Reason:</strong> The ΔEN is <strong>${diff}</strong> (between 0.4 and 1.7). The electrons are shared, but they spend more time near the more electronegative atom (${el2.electronegativity > el1.electronegativity ? el2.name : el1.name}), creating partial charges (δ+ and δ-).`;
+  } else if (interactiveState.bondType === 'nonpolar covalent') {
+    explanation += `<strong>Reason:</strong> The ΔEN is <strong>${diff}</strong> (less than 0.4). The electrons are shared almost equally between the two atoms because their pull on the electrons is very similar.`;
+  } else if (interactiveState.bondType === 'metallic') {
+    explanation += `<strong>Reason:</strong> Both atoms are metals. In metallic bonding, valence electrons are not bound to any specific atom but move freely in a 'sea of delocalised electrons' that holds the positive metal ions together.`;
+  }
+
+  // Update the info panel with this explanation
+  document.getElementById('info-mistake').innerHTML = explanation;
+  document.getElementById('info-title').textContent = "Bond Explanation";
+  
+  // Scroll to info panel for mobile/small screens
+  document.getElementById('info-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function drawValenceDots(x, y, count, r, color, t, isShared = false, targetX = null, targetY = null, shareProg = 0) {
+  if (count <= 0) return;
+  
+  // Lewis dot style positions
+  const dotOffsets = [
+    {x: 0, y: -1}, {x: 0.3, y: -1},  // Top
+    {x: 1, y: 0},  {x: 1, y: 0.3},   // Right
+    {x: 0, y: 1},  {x: 0.3, y: 1},   // Bottom
+    {x: -1, y: 0}, {x: -1, y: 0.3}   // Left
+  ];
+
+  for (let i = 0; i < count; i++) {
+    let dx = dotOffsets[i].x * (r + 6);
+    let dy = dotOffsets[i].y * (r + 6);
+    
+    // Subtle animation
+    dx += Math.sin(t * 2 + i) * 1.5;
+    dy += Math.cos(t * 2 + i) * 1.5;
+
+    let finalX = x + dx;
+    let finalY = y + dy;
+
+    // If shared or transferring
+    if (isShared && targetX !== null && targetY !== null) {
+        finalX = x + dx + (targetX - x) * shareProg;
+        finalY = y + dy + (targetY - y) * shareProg;
+    }
+
+    drawElectron(finalX, finalY, 3.5, color);
+  }
+}
+
+function drawInteractive(t) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  
+  if (interactiveState.stage === 0) {
+    ctx.fillStyle = 'rgba(45,27,105,0.4)'; ctx.font = "italic 15px 'JetBrains Mono'"; ctx.textAlign='center';
+    ctx.fillText("Select elements and click Bond, or drag them here.", W/2, H/2);
+    return;
+  }
+  
+  const el1 = interactiveState.el1;
+  const el2 = interactiveState.el2;
+  const cx = W/2, cy = H/2;
+  
+  if (interactiveState.stage === 1) {
+    drawAtom(cx, cy, 32, VIOLET, el1.symbol, null, null, true);
+    drawValenceDots(cx, cy, el1.valenceElectrons, 32, YELLOW, t);
+    ctx.fillStyle = 'rgba(45,27,105,0.6)'; ctx.font = "14px 'JetBrains Mono'"; ctx.textAlign='center';
+    ctx.fillText(`Added ${el1.name}. Now add another element.`, cx, cy + 70);
+    return;
+  }
+
+  // Stage 2: Animation of bonding
+  // Use a more organic movement (ease-out)
+  const targetDist = 55;
+  const startDist = 120;
+  const animSpeed = slowMode ? 0.3 : 0.8;
+  let dist = startDist - (animFrame * animSpeed);
+  if (dist < targetDist) dist = targetDist;
+
+  // Determine atom positions
+  // For ionic, we usually put the metal on the left
+  let leftAtom = el1, rightAtom = el2;
+  const en1 = el1.electronegativity || 0;
+  const en2 = el2.electronegativity || 0;
+
+  if (interactiveState.bondType === 'ionic' && en1 > en2) {
+    leftAtom = el2; rightAtom = el1;
+  }
+
+  const x1 = cx - dist, x2 = cx + dist;
+  
+  // 1. Draw Atoms with correct charges
+  let charge1 = '', charge2 = '';
+  if (dist <= targetDist) {
+    if (interactiveState.bondType === 'ionic') {
+      charge1 = '+'; charge2 = '−';
+    } else if (interactiveState.bondType === 'polar covalent') {
+      const leftEN = leftAtom.electronegativity || 0;
+      const rightEN = rightAtom.electronegativity || 0;
+      if (leftEN < rightEN) { charge1 = 'δ+'; charge2 = 'δ−'; }
+      else { charge1 = 'δ−'; charge2 = 'δ+'; }
+    }
+  }
+
+  drawAtom(x1, cy, 30, leftAtom.category.includes('metal') ? ORANGE : BLUE, leftAtom.symbol, charge1, null, true);
+  drawAtom(x2, cy, 30, rightAtom.category.includes('metal') ? ORANGE : BLUE, rightAtom.symbol, charge2, null, true);
+
+  // 2. Draw Valence Electrons and Animation
+  if (interactiveState.bondType === 'ionic') {
+    // Metal (left) loses, Non-metal (right) gains
+    const v1 = leftAtom.valenceElectrons;
+    const v2 = rightAtom.valenceElectrons;
+    
+    // Electrons on left atom (only if not transferred)
+    if (dist > targetDist) {
+      drawValenceDots(x1, cy, v1, 30, YELLOW, t);
+    }
+    
+    // Electrons on right atom
+    drawValenceDots(x2, cy, v2, 30, YELLOW, t);
+    
+    // Moving electron (transfer)
+    if (dist > targetDist) {
+        const prog = (startDist - dist) / (startDist - targetDist);
+        const ex = x1 + (x2 - x1) * prog;
+        const ey = cy - 30 * Math.sin(Math.PI * prog);
+        drawElectron(ex, ey, 4.5, YELLOW);
+        
+        if (showLabels) {
+          drawLabel(cx, cy - 80, "Electron transferring...", DARK, 10);
+        }
+    } else {
+        // After transfer, right atom has full octet visualization (simplified)
+        drawValenceDots(x2, cy, v2 + 1, 30, YELLOW, t);
+        if (showLabels) {
+          drawLabel(cx, cy - 80, "Ionic Bond Formed (Electrostatic Attraction)", GREEN, 11);
+        }
+    }
+    
+  } else if (interactiveState.bondType.includes('covalent')) {
+    const v1 = leftAtom.valenceElectrons;
+    const v2 = rightAtom.valenceElectrons;
+    
+    if (dist > targetDist) {
+      drawValenceDots(x1, cy, v1, 30, YELLOW, t);
+      drawValenceDots(x2, cy, v2, 30, YELLOW, t);
+      if (showLabels) {
+        drawLabel(cx, cy - 80, "Atoms approaching to share electrons...", DARK, 10);
+      }
+    } else {
+      // Sharing animation
+      const leftEN = leftAtom.electronegativity || 0;
+      const rightEN = rightAtom.electronegativity || 0;
+      const shift = interactiveState.bondType === 'polar covalent' ? (rightEN > leftEN ? 10 : -10) : 0;
+      const midX = cx + shift;
+      
+      // Draw unshared electrons
+      drawValenceDots(x1, cy, v1 - 1, 30, YELLOW, t);
+      drawValenceDots(x2, cy, v2 - 1, 30, YELLOW, t);
+      
+      // Draw shared pair
+      const ex1 = midX - 5 + Math.sin(t*3)*1.5;
+      const ex2 = midX + 5 + Math.cos(t*3)*1.5;
+      drawElectron(ex1, cy - 6, 4, YELLOW);
+      drawElectron(ex2, cy + 6, 4, ORANGE);
+
+      if (showLabels) {
+        const label = interactiveState.bondType === 'polar covalent' ? "Polar Covalent Bond (Unequal Sharing)" : "Nonpolar Covalent Bond (Equal Sharing)";
+        drawLabel(cx, cy - 80, label, VIOLET, 11);
+      }
+    }
+  } else if (interactiveState.bondType === 'metallic') {
+    // Sea of electrons
+    drawValenceDots(x1, cy, leftAtom.valenceElectrons, 30, YELLOW, t);
+    drawValenceDots(x2, cy, rightAtom.valenceElectrons, 30, YELLOW, t);
+    
+    if (dist <= targetDist) {
+      const ne = 10;
+      for (let i = 0; i < ne; i++) {
+        const ang = t * 2.5 + (i * Math.PI * 2 / ne);
+        const rx = Math.cos(ang) * 50;
+        const ry = Math.sin(ang * 0.7) * 35;
+        drawElectron(cx + rx, cy + ry, 3.5, YELLOW);
+      }
+      if (showLabels) {
+        drawLabel(cx, cy - 80, "Metallic Bond (Delocalised Electron Sea)", ORANGE, 11);
+      }
+    } else {
+      if (showLabels) {
+        drawLabel(cx, cy - 80, "Metal atoms approaching...", DARK, 10);
+      }
+    }
+  }
+
+  if (showLabels && dist <= 55) {
+    ctx.fillStyle = DARK; ctx.font = "bold 12px 'JetBrains Mono'"; ctx.textAlign = 'center';
+    ctx.fillText(interactiveState.bondType.toUpperCase(), cx, cy - 60);
+    ctx.font = "10px 'JetBrains Mono'";
+    ctx.fillText(`ΔEN = ${interactiveState.diff}`, cx, cy + 60);
+  }
+
+  animFrame++;
+}
+
+// Initialize on load
+setTimeout(initInteractive, 100);
+
 // ── MAIN LOOP ──
 let t = 0;
 function loop() {
@@ -1521,6 +1989,7 @@ function loop() {
     case 'covalent':   drawCovalent(t); break;
     case 'metallic':   drawMetallic(t); break;
     case 'comparison': drawComparison(t); break;
+    case 'interactive': drawInteractive(t); break;
   }
   rafId = requestAnimationFrame(loop);
 }
