@@ -526,6 +526,20 @@ a { color: inherit; text-decoration: none; }
 }
 .ul-grow:hover::after { width: 100%; }
 
+/* ── VIZ TABS ───────────────────────────────────── */
+.viz-tabs { display:flex; gap:0; border:1px solid var(--border); width:fit-content; margin:2rem 0 1.5rem; }
+.viz-tab {
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:.65rem 1.4rem; cursor:pointer; border-right:1px solid var(--border);
+  color:var(--text-muted); background:var(--bg); transition:all .2s; border-radius:0;
+  border-top:none; border-bottom:none; border-left:none;
+}
+.viz-tab:last-child { border-right:none; }
+.viz-tab.active { background:var(--primary); color:var(--bg); }
+.viz-tab:hover:not(.active) { color:var(--primary); background:rgba(159,122,234,0.06); }
+.video-card { transition: transform 0.3s ease; }
+.video-card:hover { transform: translateY(-5px); }
+
 /* ── DID-YOU-KNOW ENGINE ───────────────────────────── */
 .dyk-rotating {
   position: relative; overflow: hidden;
@@ -883,6 +897,17 @@ body { padding-top: 58px; }
 </style>
 </head>
 <body>
+
+  <!-- Tab Navigation -->
+  <div class="container" style="margin-top: 2rem;">
+    <div class="viz-tabs">
+      <div class="viz-tab active" onclick="switchMode('content', this)">Scientific Calculators</div>
+      <div class="viz-tab" onclick="switchMode('videos', this)">🎥 Video Tutorials</div>
+    </div>
+  </div>
+
+  <div id="content-section">
+
 <div class="page-hero">
   <div class="container">
     <div class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">/</span><span>Calculators</span></div>
@@ -1113,6 +1138,57 @@ function resetCalc() {
 
 // init first
 loadCalc(CALCS[0], list.firstElementChild);
+</script>
+  </div> <!-- End content-section -->
+
+  <!-- Video Section -->
+  <div id="video-section" style="display:none; padding:0 0 5rem">
+    <div class="container">
+      <div class="sci-panel">
+        <span class="label">Step-by-Step</span>
+        <h2 style="margin.5rem 0 1.5rem">Calculator Tutorials & Math in Chemistry</h2>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:2rem;">
+          <!-- Video 1 -->
+          <div class="video-card">
+            <div style="position:relative; padding-bottom:56.25%; height:0; margin-bottom:1rem; border:1px solid var(--border);">
+              <iframe style="position:absolute; top:0; left:0; width:100%; height:100%;" src="https://www.youtube.com/embed/S2pETo0t-5I" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <h4 style="margin-bottom:0.5rem;">How to Use the Mole Formula</h4>
+            <p class="text-muted" style="font-size:0.85rem;">Master the n=m/M calculation with examples and unit analysis.</p>
+          </div>
+          <!-- Video 2 -->
+          <div class="video-card">
+            <div style="position:relative; padding-bottom:56.25%; height:0; margin-bottom:1rem; border:1px solid var(--border);">
+              <iframe style="position:absolute; top:0; left:0; width:100%; height:100%;" src="https://www.youtube.com/embed/V6S6mE_wFm4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <h4 style="margin-bottom:0.5rem;">Ideal Gas Law (PV=nRT)</h4>
+            <p class="text-muted" style="font-size:0.85rem;">Step-by-step tutorial on solving gas law problems using our calculator.</p>
+          </div>
+          <!-- Video 3 -->
+          <div class="video-card">
+            <div style="position:relative; padding-bottom:56.25%; height:0; margin-bottom:1rem; border:1px solid var(--border);">
+              <iframe style="position:absolute; top:0; left:0; width:100%; height:100%;" src="https://www.youtube.com/embed/Xp0fT6vN_S0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <h4 style="margin-bottom:0.5rem;">Solution Dilution (M1V1=M2V2)</h4>
+            <p class="text-muted" style="font-size:0.85rem;">Learn how to calculate dilution volumes accurately for lab work.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+function switchMode(m, btn) {
+  document.querySelectorAll('.viz-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('content-section').style.display = (m === 'content') ? 'block' : 'none';
+  document.getElementById('video-section').style.display = (m === 'videos') ? 'block' : 'none';
+  
+  if(m === 'videos') {
+    window.scrollTo({ top: document.querySelector('.viz-tabs').offsetTop - 100, behavior: 'smooth' });
+  }
+}
 </script>
 </body>
 </html>

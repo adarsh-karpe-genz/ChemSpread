@@ -784,6 +784,20 @@ a { color: inherit; text-decoration: none; }
 }
 .pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
 
+/* ── VIZ TABS ───────────────────────────────────── */
+.viz-tabs { display:flex; gap:0; border:1px solid var(--border); width:fit-content; margin:2rem 0 1.5rem; }
+.viz-tab {
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:.65rem 1.4rem; cursor:pointer; border-right:1px solid var(--border);
+  color:var(--text-muted); background:var(--bg); transition:all .2s; border-radius:0;
+  border-top:none; border-bottom:none; border-left:none;
+}
+.viz-tab:last-child { border-right:none; }
+.viz-tab.active { background:var(--primary); color:var(--bg); }
+.viz-tab:hover:not(.active) { color:var(--primary); background:rgba(159,122,234,0.06); }
+.video-card { transition: transform 0.3s ease; }
+.video-card:hover { transform: translateY(-5px); }
+
 </style>
 <style>
 /* ═══════════════════════════════════════════════
@@ -1593,7 +1607,15 @@ a { color: inherit; text-decoration: none; }
     <p class="body-lg" style="margin-top:.5rem;max-width:55ch">Every page and topic on ChemSpread, categorised for easy navigation. Follow a learning path or explore freely.</p>
   </div>
 </div>
-<div style="padding:3rem 0 5rem"><div class="container">
+<div class="container">
+  <div class="viz-tabs">
+    <button class="viz-tab active" onclick="switchMode('content', this)">📚 Study Content</button>
+    <button class="viz-tab" onclick="switchMode('videos', this)">🎥 Video Lectures</button>
+  </div>
+</div>
+
+<div id="content-section" style="padding:0 0 5rem">
+  <div class="container">
 
   <div class="reveal" style="margin-bottom:2.5rem">
     <span class="label">Guided Flow</span>
@@ -1665,6 +1687,54 @@ a { color: inherit; text-decoration: none; }
     </div>
   </div>
 </div></div>
+
+<!-- Video Section -->
+<div id="video-section" style="display:none; padding:0 0 5rem">
+  <div class="container">
+    <div class="sci-panel">
+      <span class="label">Curated Learning</span>
+      <h2 style="margin:0.5rem 0 1.5rem">Chemistry Overview & Fundamentals</h2>
+      
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:2rem;">
+        <!-- Video 1: General Chemistry -->
+        <div class="video-card">
+          <div style="position:relative; padding-bottom:56.25%; height:0; margin-bottom:1rem; border:1px solid var(--border);">
+            <iframe style="position:absolute; top:0; left:0; width:100%; height:100%;" src="https://www.youtube.com/embed/k3rRrl9J2F4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <h4 style="margin-bottom:0.5rem;">01 - Introduction To Chemistry</h4>
+          <p class="text-muted" style="font-size:0.85rem;">A comprehensive introduction to the science of chemistry and its importance in our world.</p>
+        </div>
+
+        <!-- Video 2: Basic Concepts -->
+        <div class="video-card">
+          <div style="position:relative; padding-bottom:56.25%; height:0; margin-bottom:1rem; border:1px solid var(--border);">
+            <iframe style="position:absolute; top:0; left:0; width:100%; height:100%;" src="https://www.youtube.com/embed/RD_S-mXm9O8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <h4 style="margin-bottom:0.5rem;">Chemistry: A Volatile History</h4>
+          <p class="text-muted" style="font-size:0.85rem;">Explore the fascinating history of chemistry and the discovery of the elements.</p>
+        </div>
+
+        <!-- Video 3: Study Tips -->
+        <div class="video-card">
+          <div style="position:relative; padding-bottom:56.25%; height:0; margin-bottom:1rem; border:1px solid var(--border);">
+            <iframe style="position:absolute; top:0; left:0; width:100%; height:100%;" src="https://www.youtube.com/embed/9X5z0p5eD5o" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <h4 style="margin-bottom:0.5rem;">How to Study Chemistry Effectively</h4>
+          <p class="text-muted" style="font-size:0.85rem;">Essential tips and strategies for mastering chemistry concepts and passing exams.</p>
+        </div>
+
+        <!-- Video 4: Careers in Chemistry -->
+        <div class="video-card">
+          <div style="position:relative; padding-bottom:56.25%; height:0; margin-bottom:1rem; border:1px solid var(--border);">
+            <iframe style="position:absolute; top:0; left:0; width:100%; height:100%;" src="https://www.youtube.com/embed/6m6uT_qB_94" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <h4 style="margin-bottom:0.5rem;">What Can You Do With a Chemistry Degree?</h4>
+          <p class="text-muted" style="font-size:0.85rem;">Discover the diverse career paths available to chemistry students in industry and research.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
 const DAILY_FACTS = [
   "Hydrogen is the most abundant element in the universe, making up about 75% of all normal matter by mass.",
@@ -1704,6 +1774,17 @@ const dayOfYear = Math.floor((today - new Date(today.getFullYear(),0,0)) / 86400
 const fact = DAILY_FACTS[dayOfYear % DAILY_FACTS.length];
 document.getElementById('daily-fact').textContent = fact;
 document.getElementById('daily-date').textContent = 'Fact for ' + today.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+
+function switchMode(m, btn) {
+  document.querySelectorAll('.viz-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('content-section').style.display = (m === 'content') ? 'block' : 'none';
+  document.getElementById('video-section').style.display = (m === 'videos') ? 'block' : 'none';
+  
+  if(m === 'videos') {
+    window.scrollTo({ top: document.querySelector('.viz-tabs').offsetTop - 100, behavior: 'smooth' });
+  }
+}
 </script>
 <script src="js/compounds.js"></script>
 <script src="js/reactions.js"></script>

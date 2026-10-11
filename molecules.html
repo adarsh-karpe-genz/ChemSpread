@@ -782,6 +782,20 @@ a { color: inherit; text-decoration: none; }
 }
 .pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
 
+  /* --- Video Tabs Styling --- */
+  .viz-tabs { display:flex; gap:0; border:1px solid var(--border); width:fit-content; margin:2rem 0 1.5rem; }
+  .viz-tab {
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+    padding:.65rem 1.4rem; cursor:pointer; border-right:1px solid var(--border);
+    color:var(--text-muted); background:var(--bg); transition:all .2s; border-radius:0;
+    border-top:none; border-bottom:none; border-left:none;
+  }
+  .viz-tab:last-child { border-right:none; }
+  .viz-tab.active { background:var(--primary); color:var(--bg); }
+  .viz-tab:hover:not(.active) { color:var(--primary); background:rgba(159,122,234,0.06); }
+  .video-card { transition: transform 0.3s ease; }
+  .video-card:hover { transform: translateY(-5px); }
+
 </style>
 <style>body{padding-top:58px}.page-hero{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border)}</style>
 </head><body>
@@ -790,8 +804,15 @@ a { color: inherit; text-decoration: none; }
   <span class="label">Shapes · Polarity · VSEPR Theory</span>
   <h1 style="margin-top:.4rem">Molecular Geometry</h1>
   <p class="body-lg" style="margin-top:.4rem;max-width:56ch">The 3D shape of a molecule determines its physical properties, polarity, reactivity, and biological behaviour. VSEPR theory predicts these shapes from electron pair repulsion.</p>
+
+  <!-- Video/Content Tabs -->
+  <div class="viz-tabs">
+    <div class="viz-tab active" onclick="switchMode('content', this)">Study Content</div>
+    <div class="viz-tab" onclick="switchMode('videos', this)">Video Lectures</div>
+  </div>
 </div></div>
 
+<div id="content-section">
 <div style="padding:4rem 0 5rem"><div class="container">
 <p class="body-lg reveal" style="max-width:60ch;margin-bottom:2.5rem">VSEPR (Valence Shell Electron Pair Repulsion) theory: electron pairs — both bonding and lone — repel each other and arrange to maximise distance, determining molecular geometry.</p>
 
@@ -805,6 +826,72 @@ a { color: inherit; text-decoration: none; }
   <div id="vsepr-tbl"></div>
 </div>
 </div></div>
+</div> <!-- End content-section -->
+
+<div id="video-section" class="container" style="display:none; padding: 2rem 0;">
+  <div class="sci-panel">
+    <div class="label" style="margin-bottom: 1.5rem;">Video Curriculum · Molecular Geometry</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+      
+      <!-- VSEPR Theory -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/nxebQZUVvTg" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">VSEPR Theory - Introduction</h4>
+        <p class="text-muted" style="font-size:0.85rem">A fundamental guide to predicting molecular shapes based on electron repulsion.</p>
+      </div>
+
+      <!-- Molecular Geometry -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/P5L_7m_W6uQ" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">Molecular Geometry Explained</h4>
+        <p class="text-muted" style="font-size:0.85rem">Visualising 3D structures: Linear, Bent, Tetrahedral, and more.</p>
+      </div>
+
+      <!-- Polarity -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/uYtwU0uRK7o" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">Polar & Nonpolar Molecules</h4>
+        <p class="text-muted" style="font-size:0.85rem">How molecular shape and electronegativity determine overall polarity.</p>
+      </div>
+
+      <!-- Intermolecular Forces -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/08kGGr6yByw" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">Intermolecular Forces</h4>
+        <p class="text-muted" style="font-size:0.85rem">Dipole-dipole, London dispersion, and Hydrogen bonding explained.</p>
+      </div>
+
+      <!-- Hybridization -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/879V9P2Xm-0" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">Hybridization of Atomic Orbitals</h4>
+        <p class="text-muted" style="font-size:0.85rem">Understanding sp, sp², and sp³ hybridization in molecular bonding.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function switchMode(m, btn) {
+  document.getElementById('content-section').style.display = (m === 'content') ? 'block' : 'none';
+  document.getElementById('video-section').style.display = (m === 'videos') ? 'block' : 'none';
+  document.querySelectorAll('.viz-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.viz-tabs').offsetTop - 100, behavior: 'smooth' });
+}
+</script>
+
 <script>
 const MOLS=[
   {f:"H₂O",n:"Water",sh:"Bent",ang:"104.5°",p:true,bp:"100°C",d:"2 bonding + 2 lone pairs. Lone pairs compress bond angle below tetrahedral. Polar — the dipoles don't cancel. Hydrogen bonding gives anomalously high bp.",link:"compounds.html"},

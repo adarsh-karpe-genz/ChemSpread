@@ -780,11 +780,40 @@ a { color: inherit; text-decoration: none; }
   70%  { transform: scale(1.04); }
   100% { transform: scale(1); opacity: 1; }
 }
-.pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
+/* ── VIZ TABS ───────────────────────────────────── */
+.viz-tabs { display:flex; gap:0; border:1px solid var(--border); width:fit-content; margin:2rem 0 1.5rem; }
+.viz-tab {
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:.65rem 1.4rem; cursor:pointer; border-right:1px solid var(--border);
+  color:var(--text-muted); background:var(--bg); transition:all .2s; border-radius:0;
+  border-top:none; border-bottom:none; border-left:none;
+}
+.viz-tab:last-child { border-right:none; }
+.viz-tab.active { background:var(--primary); color:var(--bg); }
+.viz-tab:hover:not(.active) { color:var(--primary); background:rgba(159,122,234,0.06); }
 
+#video-section { display:none; animation: fadeSlideUp 0.5s ease; }
+.video-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:2rem; margin-top:2rem; }
+.video-card { background:var(--bg-dark); border:1px solid var(--border); overflow:hidden; transition:all 0.3s ease; }
+.video-card:hover { transform:translateY(-5px); border-color:var(--accent); box-shadow:var(--shadow-violet); }
+.video-thumb { position:relative; aspect-ratio:16/9; background:#000; }
+.video-thumb iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+.video-info { padding:1.2rem; }
+.video-title { font-family:var(--serif); font-size:1.1rem; color:var(--bg); margin-bottom:.4rem; }
+.video-desc { font-size:.8rem; color:rgba(255,255,255,0.6); line-height:1.5; }
+
+.pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
 </style>
 <style>body{padding-top:58px}.page-hero{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border)}</style>
 </head><body>
+<div class="container">
+  <div class="viz-tabs">
+    <div class="viz-tab active" onclick="switchMode('content', this)">Study Material</div>
+    <div class="viz-tab" onclick="switchMode('videos', this)">Video Tutorials</div>
+  </div>
+</div>
+
+<div id="content-section">
 <div class="page-hero"><div class="container">
   <div class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">/</span><span>Daily Chemistry</span></div>
   <span class="label">Chemistry in Everyday Life · Daily Fact</span>
@@ -835,6 +864,45 @@ a { color: inherit; text-decoration: none; }
 
 </div>
 </div></div>
+</div> <!-- End #content-section -->
+
+<div id="video-section" class="container" style="margin-bottom: 5rem;">
+  <h2 class="reveal visible" style="margin-bottom:1.5rem">Video Tutorials</h2>
+  <p class="body-lg" style="margin-bottom:2rem">Explore chemistry in daily life through these curated visual resources.</p>
+  
+  <div class="video-grid">
+    <div class="video-card reveal visible">
+      <div class="video-thumb">
+        <iframe src="https://www.youtube.com/embed/S2O6n0o8R7M" title="The Chemistry of Cookies" allowfullscreen></iframe>
+      </div>
+      <div class="video-info">
+        <div class="video-title">The Chemistry of Cookies</div>
+        <div class="video-desc">Explore the complex chemical reactions that happen when you bake cookies.</div>
+      </div>
+    </div>
+    
+    <div class="video-card reveal visible">
+      <div class="video-thumb">
+        <iframe src="https://www.youtube.com/embed/XqW_V1D78mU" title="How Soap Works" allowfullscreen></iframe>
+      </div>
+      <div class="video-info">
+        <div class="video-title">How Soap Works</div>
+        <div class="video-desc">The science behind micelles and how soap molecules remove grease and dirt.</div>
+      </div>
+    </div>
+    
+    <div class="video-card reveal visible">
+      <div class="video-thumb">
+        <iframe src="https://www.youtube.com/embed/4YOwEqGykDM" title="The Chemistry of Caffeine" allowfullscreen></iframe>
+      </div>
+      <div class="video-info">
+        <div class="video-title">The Chemistry of Caffeine</div>
+        <div class="video-desc">Understanding how caffeine interacts with your brain's adenosine receptors.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const FACTS=[
   {num:"6.022×10²³",topic:"Avogadro's Number",text:"One mole of anything contains 6.022×10²³ units. A mole of sand grains would cover Earth several metres deep — yet chemists work with moles of atoms in a test tube."},
@@ -867,4 +935,16 @@ document.getElementById('dyk-date').textContent=now.toLocaleDateString('en-GB',{
 <script src="js/knowledge-graph.js"></script>
 <script src="js/components.js"></script>
 <script src="js/interactions.js"></script>
+<script>
+  function switchMode(m, btn) {
+    document.querySelectorAll('.viz-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('content-section').style.display = (m === 'content') ? 'block' : 'none';
+    document.getElementById('video-section').style.display = (m === 'videos') ? 'block' : 'none';
+    
+    if(m === 'videos') {
+      window.scrollTo({ top: document.querySelector('.viz-tabs').offsetTop - 100, behavior: 'smooth' });
+    }
+  }
+</script>
 </body></html>

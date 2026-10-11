@@ -783,7 +783,21 @@ a { color: inherit; text-decoration: none; }
 .pop-in { animation: popIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards; }
 
 </style>
-<style>body{padding-top:58px}.page-hero{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border)}</style>
+<style>
+body{padding-top:58px}.page-hero{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border)}
+.viz-tabs { display:flex; gap:0; border:1px solid var(--border); width:fit-content; margin:2rem 0 1.5rem; }
+.viz-tab {
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:.65rem 1.4rem; cursor:pointer; border-right:1px solid var(--border);
+  color:var(--text-muted); background:var(--bg); transition:all .2s; border-radius:0;
+  border-top:none; border-bottom:none; border-left:none;
+}
+.viz-tab:last-child { border-right:none; }
+.viz-tab.active { background:var(--primary); color:var(--bg); }
+.viz-tab:hover:not(.active) { color:var(--primary); background:rgba(159,122,234,0.06); }
+.video-card { transition: transform 0.3s ease; }
+.video-card:hover { transform: translateY(-5px); }
+</style>
 </head><body>
 <div class="page-hero"><div class="container">
   <div class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">/</span><span>Compounds</span></div>
@@ -792,6 +806,14 @@ a { color: inherit; text-decoration: none; }
   <p class="body-lg" style="margin-top:.4rem;max-width:56ch">From water to aspirin — chemical compounds are combinations of elements bonded in fixed ratios, with properties entirely different from their constituent parts.</p>
 </div></div>
 
+<div class="container">
+  <div class="viz-tabs reveal">
+    <button class="viz-tab active" onclick="switchMode('content',this)">📖 Study Content</button>
+    <button class="viz-tab" onclick="switchMode('videos',this)">🎥 Video Lectures</button>
+  </div>
+</div>
+
+<div id="content-section">
 <div style="padding:4rem 0 5rem"><div class="container">
 <div style="margin-bottom:1.5rem" class="reveal">
   <div class="tag-system">
@@ -841,6 +863,72 @@ function filterC(type, btn) {
     </div>`).join('');
 }
 filterC('all', document.querySelector('.chem-tag'));
+</script>
+</div> <!-- End content-section -->
+
+<!-- 🎥 VIDEO LECTURES SECTION -->
+<div id="video-section" class="container" style="display:none; padding: 2rem 0;">
+  <div class="sci-panel">
+    <div class="label" style="margin-bottom: 1.5rem;">Video Curriculum · Chemical Compounds</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+      
+      <!-- What are Compounds -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/H0_yvXy6F_8" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">What are Compounds?</h4>
+        <p class="text-muted" style="font-size:0.85rem">A clear introduction to how elements combine to form new substances.</p>
+      </div>
+
+      <!-- Ionic vs Covalent -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/PKA4CZwbZWU" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">Ionic vs. Covalent Compounds</h4>
+        <p class="text-muted" style="font-size:0.85rem">Comparing the two primary types of chemical bonding in compounds.</p>
+      </div>
+
+      <!-- Naming Compounds -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/m9_I7v070Rk" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">Naming Binary Ionic Compounds</h4>
+        <p class="text-muted" style="font-size:0.85rem">Master the rules for naming ionic compounds with this step-by-step guide.</p>
+      </div>
+
+      <!-- Organic Compounds -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/U33i7UatT3s" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">Intro to Organic Chemistry</h4>
+        <p class="text-muted" style="font-size:0.85rem">An overview of carbon-based compounds and their unique structures.</p>
+      </div>
+
+      <!-- Acids and Bases -->
+      <div class="video-card">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:1rem;">
+          <iframe src="https://www.youtube.com/embed/ANi709MYnWg" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin-bottom:0.5rem">Acids and Bases</h4>
+        <p class="text-muted" style="font-size:0.85rem">Understanding the properties and reactions of these essential compounds.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function switchMode(m, btn) {
+  document.getElementById('content-section').style.display = (m === 'content') ? 'block' : 'none';
+  document.getElementById('video-section').style.display = (m === 'videos') ? 'block' : 'none';
+  document.querySelectorAll('.viz-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.viz-tabs').offsetTop - 100, behavior: 'smooth' });
+}
 </script>
 <script src="js/elements.js"></script>
 <script src="js/compounds.js"></script>

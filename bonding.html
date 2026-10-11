@@ -897,6 +897,7 @@ body { padding-top:58px; }
   <button class="viz-tab" onclick="switchMode('covalent',this)">🔗 Covalent Bonding</button>
   <button class="viz-tab" onclick="switchMode('metallic',this)">✨ Metallic Bonding</button>
   <button class="viz-tab" onclick="switchMode('comparison',this)">📊 Comparison</button>
+  <button class="viz-tab" onclick="switchMode('videos',this)">🎥 Videos</button>
 </div>
 
 <div class="viz-layout">
@@ -974,6 +975,39 @@ body { padding-top:58px; }
       <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Conductivity</div><div>Only liquid/aq</div><div>None</div><div>High (Solid/Liq)</div></div>
       <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Malleability</div><div>Brittle</div><div>Varies</div><div>Malleable/Ductile</div></div>
       <div class="bc-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;"><div>Examples</div><div>NaCl, MgO</div><div>H₂O, CO₂</div><div>Cu, Fe, Al</div></div>
+    </div>
+
+    <!-- Video Section -->
+    <div id="video-section" style="display:none; margin-top:1.5rem;">
+      <div class="sci-panel" style="padding:1.5rem;">
+        <div style="font-family:var(--mono); font-size:0.7rem; color:var(--accent); margin-bottom:1rem; text-transform:uppercase; letter-spacing:1px;">Recommended Lectures</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.5rem;">
+          <!-- Video 1 -->
+          <div class="video-card" style="background:rgba(255,255,255,0.4); border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+            <iframe width="100%" height="180" src="https://www.youtube.com/embed/QXT4OVM4vXI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div style="padding:1rem;">
+              <h4 style="font-size:0.9rem; margin-bottom:0.4rem;">Types of Chemical Bonds</h4>
+              <p style="font-size:0.75rem; color:var(--text-muted);">Overview of Ionic, Covalent, and Metallic bonding.</p>
+            </div>
+          </div>
+          <!-- Video 2 -->
+          <div class="video-card" style="background:rgba(255,255,255,0.4); border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+            <iframe width="100%" height="180" src="https://www.youtube.com/embed/Ssh7X_0Y48Q" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div style="padding:1rem;">
+              <h4 style="font-size:0.9rem; margin-bottom:0.4rem;">Ionic vs. Covalent Bonds</h4>
+              <p style="font-size:0.75rem; color:var(--text-muted);">Deep dive into the differences between ionic and covalent bonding.</p>
+            </div>
+          </div>
+          <!-- Video 3 -->
+          <div class="video-card" style="background:rgba(255,255,255,0.4); border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+            <iframe width="100%" height="180" src="https://www.youtube.com/embed/c4udBSZfLHY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div style="padding:1rem;">
+              <h4 style="font-size:0.9rem; margin-bottom:0.4rem;">Metallic Bonding</h4>
+              <p style="font-size:0.75rem; color:var(--text-muted);">Understanding the "sea of electrons" in metals.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1089,6 +1123,10 @@ function switchMode(m, btn) {
   document.getElementById('interactive-sel').style.display = (m === 'interactive') ? 'block' : 'none';
   document.getElementById('btn-explain').style.display = (m === 'interactive') ? 'inline-block' : 'none';
   document.getElementById('comparison-table').style.display = (m === 'comparison') ? 'block' : 'none';
+  document.getElementById('video-section').style.display = (m === 'videos') ? 'block' : 'none';
+  // Hide canvas and its controls if in video or comparison mode
+  const canvasDisplay = (m === 'videos' || m === 'comparison') ? 'none' : 'block';
+  document.querySelector('.canvas-wrap').style.display = canvasDisplay;
   updateInfoPanel();
   drawEnergy();
 }
@@ -1336,7 +1374,7 @@ function drawCovalent(t) {
   });
 
   // Electron sharing animation
-  const shareT = (Math.sin(t * (slowMode?.8:2)) + 1) / 2; // 0→1 oscillation
+  const shareT = (Math.sin(t * (slowMode ? 0.8 : 2)) + 1) / 2; // 0→1 oscillation
   mol.pairs.forEach(([i,j]) => {
     const a = mol.atoms[i], b = mol.atoms[j];
     const ex = (cx+a.x) + shareT * ((cx+b.x) - (cx+a.x));
@@ -1403,7 +1441,7 @@ function drawMetallic(t) {
   // Free electrons moving randomly
   const ne = 20;
   for (let i=0;i<ne;i++) {
-    const angle = (t*(slowMode?.4:1.2) + i*Math.PI*2/ne);
+    const angle = (t*(slowMode ? 0.4 : 1.2) + i*Math.PI*2/ne);
     const rx = Math.cos(angle*1.3+i) * (W*.3);
     const ry = Math.sin(angle*0.9+i*1.4) * (H*.25);
     const ex = W/2 + rx;
@@ -1470,6 +1508,7 @@ function drawEnergy() {
     covalent: { reactant:120, peak:50, product:70, label:'H₂ covalent bond', note:'Sharing lowers energy — stable bond formed', col:VIOLET },
     metallic: { reactant:130, peak:80, product:50, label:'Cu metallic bonding', note:'Delocalised electrons lower total energy', col:ORANGE },
     comparison:{ reactant:130, peak:50, product:60, label:'General bonding', note:'Bond formation always lowers total energy', col:GREEN },
+    videos:   { reactant:130, peak:50, product:60, label:'Learning Journey', note:'Knowledge accumulation lowers the activation energy of understanding', col:VIOLET },
   };
   const cfg = configs[mode] || configs.ionic;
 
@@ -1519,9 +1558,9 @@ const INFO_DATA = {
     title:"Ionic Bonding", sub:"Example: Sodium Chloride (NaCl)",
     what:"A metal atom loses electrons to become a cation (+). A non-metal gains them to become an anion (−). The electrostatic attraction between opposite charges forms the bond.",
     why:"Na has 1 weakly-held valence electron (low ionisation energy: 496 kJ/mol). Cl has high electron affinity (349 kJ/mol). The lattice energy released (−787 kJ/mol) makes the overall process highly exothermic.",
-    formula:"Na → Na⁺ + e⁻  (ionisation)
+    formula:`Na → Na⁺ + e⁻  (ionisation)
 Cl + e⁻ → Cl⁻  (electron gain)
-Na⁺ + Cl⁻ → NaCl lattice",
+Na⁺ + Cl⁻ → NaCl lattice`,
     props:"High melting point (strong lattice forces), conducts only when molten/dissolved, brittle, usually soluble in polar solvents.",
     mistake:"NaCl does NOT contain molecules — it's a giant ionic lattice. No discrete NaCl units. The formula shows the simplest ratio of ions.",
     real:"Nerve impulse transmission: Na⁺ ions flood through membrane channels to generate action potentials — every thought requires ionic bonding."
@@ -1530,9 +1569,9 @@ Na⁺ + Cl⁻ → NaCl lattice",
     title:"Covalent Bonding", sub:"Example: Water (H₂O), selected below",
     what:"Two non-metal atoms share one or more pairs of electrons. The shared electrons are attracted to BOTH nuclei simultaneously, creating the bond. Multiple shared pairs = double/triple bonds.",
     why:"When the electronegativity difference between atoms is small (<1.7), neither atom can fully claim the electrons. Sharing is energetically favourable — the bonding orbital is lower energy than either separate atomic orbital.",
-    formula:"H• + •H → H:H  (H₂, single bond)
+    formula:`H• + •H → H:H  (H₂, single bond)
 O + 2H → H:O:H  (H₂O, 2 single bonds)
-O + C + O → O=C=O  (CO₂, 2 double bonds)",
+O + C + O → O=C=O  (CO₂, 2 double bonds)`,
     props:"Lower melting points (simple covalent); very high if giant (SiO₂, diamond); doesn't conduct electricity (no free ions or electrons); solubility depends on polarity.",
     mistake:"Polar bonds ≠ polar molecule. CO₂ has polar C=O bonds but is non-polar (linear). H₂O has polar O-H bonds AND is polar (bent). Geometry determines net dipole.",
     real:"DNA is held together by covalent bonds in its backbone (strong, stores genetic info) and hydrogen bonds between base pairs (weak enough to 'unzip' for replication)."
@@ -1541,9 +1580,9 @@ O + C + O → O=C=O  (CO₂, 2 double bonds)",
     title:"Metallic Bonding", sub:"Example: Copper (Cu), Iron (Fe)",
     what:"Metal atoms release their valence electrons into a shared 'sea' of delocalised electrons. The positive metal ions (cations) are held together by their attraction to this mobile electron cloud.",
     why:"Metals have low ionisation energies — they release electrons easily. The delocalised electrons can move freely, lowering the overall energy of the system compared to localised bonding.",
-    formula:"Cu → Cu⁺ + e⁻ (for each atom)
+    formula:`Cu → Cu⁺ + e⁻ (for each atom)
 Electrons delocalise into conduction band
-Coulombic attraction: Cu⁺ lattice ↔ e⁻ sea",
+Coulombic attraction: Cu⁺ lattice ↔ e⁻ sea`,
     props:"High melting points (strong metallic bonding), excellent electrical conductors (mobile electrons), malleable/ductile (ion layers slide — no directional bonds), lustrous (electrons reflect light).",
     mistake:"Metallic bonds are non-directional. When you bend a metal, ion layers slide over each other WITHOUT breaking the bond. This is why metals are malleable. Ionic solids shatter because sliding realigns like charges.",
     real:"Copper wiring: delocalised electrons carry electrical current. Aluminium aircraft: metallic bonding allows thin, strong sheets to be formed. Tungsten filaments: very strong metallic bonds allow 3422°C use."
@@ -1552,12 +1591,22 @@ Coulombic attraction: Cu⁺ lattice ↔ e⁻ sea",
     title:"Bond Type Comparison", sub:"Ionic vs Covalent vs Metallic",
     what:"Bonding exists on a spectrum. The type is determined primarily by electronegativity difference. No bond is 100% ionic or covalent — all have some character of both.",
     why:"Electronegativity difference > 1.7: ionic character dominates. < 1.7: covalent. Metals: metallic bonding. Pauling's scale quantifies the 'pull' on bonding electrons.",
-    formula:"EN difference > 1.7 → ionic (NaCl: 3.16−0.93=2.23)
+    formula:`EN difference > 1.7 → ionic (NaCl: 3.16−0.93=2.23)
 EN difference < 1.7 → covalent (HCl: 3.16−2.20=0.96)
-Metal-metal → metallic",
+Metal-metal → metallic`,
     props:"See comparison table below for all key properties across bond types.",
     mistake:"Bond type does NOT uniquely determine all properties. Giant covalent structures (diamond, SiO₂) have very high melting points — similar to ionic. Always consider structure AND bonding.",
     real:"Drug design exploits all bond types: ionic salt forms improve solubility, covalent bonds provide the drug's core structure, metallic coordination helps catalytic drugs (cisplatin uses Pt)."
+  },
+  videos: {
+    title: "Video Lectures",
+    sub: "Visual Learning Resources",
+    what: "Curated educational videos covering the fundamental concepts of chemical bonding, including ionic, covalent, and metallic interactions.",
+    why: "Visualizing atomic-scale processes can be challenging. These lectures provide expert explanations and high-quality animations to reinforce your understanding.",
+    formula: "Recommended watching order:\n1. Types of Chemical Bonds\n2. Ionic vs Covalent\n3. Metallic Bonding",
+    props: "Interactive, visual, and comprehensive explanations from top educators.",
+    mistake: "Don't just watch passively! Try to relate the concepts in the videos back to the interactive simulations in the other tabs.",
+    real: "Multimedia learning is one of the most effective ways to master complex scientific topics like molecular geometry and orbital overlap."
   }
 };
 
